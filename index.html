@@ -14,22 +14,34 @@
   <div class="page-glow"></div>
   <div class="house-silhouette" aria-hidden="true"></div>
 
-  <header class="site-header">
-    <a class="logo" href="#" aria-label="MiFiL home">
-      <img src="logo.png" alt="MiFiL logo">
-    </a>
-  </header>
+ <div class="page-glow"></div>
+<div class="house-silhouette" aria-hidden="true"></div>
 
-  <main class="hero">
+<header class="site-header">
+  <a class="logo" href="#" aria-label="MiFiL home">
+    <img src="logo.png" alt="MiFiL logo">
+  </a>
+
+  <div class="lang-switcher" aria-label="Language switcher">
+    <button type="button" class="lang-button" data-lang="lv" aria-pressed="false">LV</button>
+    <button type="button" class="lang-button" data-lang="en" aria-pressed="false">EN</button>
+    <button type="button" class="lang-button" data-lang="ru" aria-pressed="false">RU</button>
+  </div>
+</header>
+
+<main>
+  <section class="hero hero-screen">
     <div class="top-window" aria-hidden="true"></div>
 
     <section class="hero-copy">
       <h1 id="hero-title"></h1>
-      <p class="hero-subtitle" id="hero-subtitle">Not to win. To be.</p>
-      <a class="enter-button" href="#projects" id="enter-link">Enter the house</a>
+      <p class="hero-subtitle" id="hero-subtitle"></p>
+      <a class="enter-button" href="#projects" id="enter-link"></a>
     </section>
+  </section>
 
-    <section class="projects" id="projects" aria-label="Projects">
+  <section class="projects-section" id="projects" aria-label="Projects">
+    <div class="projects">
       <a class="project-card" id="project-1" href="#" target="_blank" rel="noopener noreferrer">
         <span class="card-top-light" aria-hidden="true"></span>
         <h2 class="project-title"></h2>
@@ -47,8 +59,9 @@
         <h2 class="project-title"></h2>
         <p class="project-description"></p>
       </div>
-    </section>
-  </main>
+    </div>
+  </section>
+</main>
 
   <script src="texts.js"></script>
   <script src="script.js"></script>
