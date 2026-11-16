@@ -1,50 +1,76 @@
 <!doctype html>
 <html lang="en">
-
-<head>
+  <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0b1728">
     <title>MiFiL</title>
+
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="style.css">
+
     <script defer src="texts.js"></script>
     <script defer src="script.js"></script>
-</head>
-
-<body class="detail-body">
+  </head>
+  <body class="detail-body">
     <div class="site-shell">
-        <header class="site-header"><a class="brand" href="index.html" aria-label="MiFiL — Home"><img
-                    src="assets/mifil-logo.png" alt="MiFiL" width="115" height="70"></a><a class="header-link"
-                href="index.html" data-i="home">Home</a></header>
-        <main class="detail" id="main"><a class="back" href="index.html"><span aria-hidden="true">←</span> <span
-                    data-i="back">Back to the house</span></a>
-            <article class="detail-content" id="detail-content">
-                <p class="eyebrow" id="detail-kicker">MiFiL</p>
-                <h1 id="detail-title">MiFiL</h1>
-                <p class="detail-description" id="detail-description"></p>
-                <div class="detail-actions" id="detail-actions"></div><noscript>
-                    <p>Enable JavaScript to view project information.</p>
-                </noscript>
-            </article>
-            <div class="detail-art" aria-hidden="true">
-                <div class="art-window"><i></i><i></i><i></i><i></i></div>
-            </div>
-        </main>
-        <footer class="site-footer"><span>© <span id="year">2026</span> MiFiL</span>
-            <nav class="footer-links"><a href="page.html?view=about" data-i="about">About MiFiL</a><a
-                    href="page.html?view=creator" data-i="creator">From the creator</a><a href="page.html?view=privacy"
-                    data-i="privacy">Privacy</a></nav>
-            <div class="language"><svg viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="12" cy="12" r="9" />
-                    <ellipse cx="12" cy="12" rx="4" ry="9" />
-                    <path d="M3 12h18" />
-                </svg><label class="sr-only" for="language" data-i="language">Language</label><select id="language"
-                    aria-label="Language">
-                    <option value="en">English</option>
-                </select><span class="select-chevron" aria-hidden="true">⌄</span></div>
-        </footer>
-    </div>
-</body>
+      <header class="site-header">
+        <a class="brand" href="index.html" aria-label="MiFiL — Home">
+          <img src="assets/mifil-logo.png" alt="MiFiL" width="115" height="70">
+        </a>
 
+        <a class="header-link" href="index.html" data-i="home">Home</a>
+      </header>
+
+      <main class="detail" id="main">
+        <a class="back" href="index.html">
+          <span aria-hidden="true">←</span>
+          <span data-i="back">Back to the house</span>
+        </a>
+
+        <article class="detail-content" id="detail-content">
+          <p class="detail-kicker" id="detail-kicker">MiFiL</p>
+          <h1 id="detail-title">MiFiL</h1>
+          <p class="detail-description" id="detail-description"></p>
+          <div class="detail-actions" id="detail-actions"></div>
+          <noscript><p>Enable JavaScript to view project information.</p></noscript>
+        </article>
+
+        <div class="detail-art" aria-hidden="true">
+          <div class="detail-art-glow">
+            <div class="art-window">
+              <i></i>
+              <i></i>
+              <i></i>
+              <i></i>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer class="site-footer">
+        <span>© <span id="year">2026</span> MiFiL</span>
+
+        <nav class="footer-links">
+          <a href="page.html?view=about" data-i="about">About MiFiL</a>
+          <a href="page.html?view=creator" data-i="creator">From the creator</a>
+          <a href="page.html?view=privacy" data-i="privacy">Privacy</a>
+        </nav>
+
+        <div class="language">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"></circle>
+            <ellipse cx="12" cy="12" rx="4" ry="9"></ellipse>
+            <path d="M3 12h18"></path>
+          </svg>
+
+          <label class="sr-only" for="language" data-i="language">Language</label>
+          <select id="language" aria-label="Language">
+            <option value="en">English</option>
+          </select>
+          <span class="select-chevron" aria-hidden="true">⌄</span>
+        </div>
+      </footer>
+    </div>
+  </body>
 </html>
