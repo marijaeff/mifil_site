@@ -1,103 +1,23 @@
-window.mifilContent = {
-  en: {
-    hero: {
-      title: "A place to feel.",
-      subtitle: "Instead of winning… could we just",
-      enterLabel: "...be? by playing;)"
-    },
-    projects: [
-      {
-        id: "project-1",
-        title: "Playable\nletter",
-        description: "A letter you\ncan walk through.",
-        url: "https://www.fiverr.com/",
-        external: true,
-        disabled: false
-      },
-      {
-        id: "project-2",
-        title: "FEEL",
-        description: "An intuition\nwithout pressure.",
-        url: "#",
-        external: false,
-        disabled: true
-      },
-      {
-        id: "project-3",
-        title: "LivEmo",
-        description: "A space to\nshare moods.",
-        url: "#",
-        external: false,
-        disabled: true
-      }
-    ]
-  },
-
-  ru: {
-    hero: {
-      title: "Место чувствовать.",
-      subtitle: "Вместо того чтобы выигрывать… может, просто",
-      enterLabel: "...играясь, быть?:)"
-    },
-    projects: [
-      {
-        id: "project-1",
-        title: "Playable\nletter",
-        description: "Письмо, по которому\nможно пройти.",
-        url: "https://www.fiverr.com/",
-        external: true,
-        disabled: false
-      },
-      {
-        id: "project-2",
-        title: "FEEL",
-        description: "Интуиция\nбез давления.",
-        url: "#",
-        external: false,
-        disabled: true
-      },
-      {
-        id: "project-3",
-        title: "LivEmo",
-        description: "Пространство\nдля настроений.",
-        url: "#",
-        external: false,
-        disabled: true
-      }
-    ]
-  },
-
-  lv: {
-    hero: {
-      title: "Vieta just.",
-      subtitle: "Tā vietā, lai uzvarētu… varbūt vienkārši",
-      enterLabel: "...spēlējoties, būt?:)"
-    },
-    projects: [
-      {
-        id: "project-1",
-        title: "Playable\nletter",
-        description: "Vēstule, kurai\nvar iziet cauri.",
-        url: "https://www.fiverr.com/",
-        external: true,
-        disabled: false
-      },
-      {
-        id: "project-2",
-        title: "FEEL",
-        description: "Intuīcija\nbez spiediena.",
-        url: "#",
-        external: false,
-        disabled: true
-      },
-      {
-        id: "project-3",
-        title: "LivEmo",
-        description: "Vieta\nnoskaņu dalīšanai.",
-        url: "#",
-        external: false,
-        disabled: true
-      }
-    ]
-  }
-};
+window.MiFiLProjects={livemo:{name:'livEmo',links:[]},'our-quest':{name:'Our Quest',links:[]},feel:{name:'FEEL',links:[]},'playable-letter':{name:'Playable Letter',links:[{href:'playable_letter/test_1/index.html',label:'demo1'},{href:'playable_letter/test_2/index.html',label:'demo2'}]}};
+window.MiFiLLanguages={en:'English',ru:'Русский',lv:'Latviešu',uk:'Українська',de:'Deutsch',es:'Español',fr:'Français',pt:'Português',it:'Italiano',pl:'Polski',tr:'Türkçe',ar:'العربية',hi:'हिन्दी',zh:'中文',ja:'日本語',ko:'한국어'};
+(() => {
+const keys='worlds|intro|about|creator|privacy|language|home|back|rotate|left|right|fallback|skip|house|opening|unlinked|demo1|demo2|livemo|our-quest|feel|playable-letter|aboutText|creatorText|privacyText'.split('|');
+const rows={
+en:'Worlds|Little worlds to discover.|About MiFiL|From the creator|Privacy|Language|Home|Back to the house|Drag to turn · choose a window|Rotate left|Rotate right|Choose a world from the list.|Skip to projects|Interactive house|Opening|A public link has not been added yet.|Play demo 1|Play demo 2|A personal world to explore your feelings and moods, with room for all of them.|Small shared adventures, real-life moments and memories with the people close to you.|A game about intuition, curiosity and discovery without pressure.|A letter you can walk through. A small playable world to share something personal.|MiFiL is a home for little worlds: games and apps born from curiosity, creativity and a wish to share warmth. A place to be, with all your feelings.|MiFiL began as a personal creative space, a home for ideas and childhood dreams. It is still a place to create freely and share warmth with others.|This website stores your language preference locally in your browser. Individual games may have their own privacy information. The full site policy is being prepared.',
+ru:'Миры|Маленькие миры, которые можно открыть.|О MiFiL|От создателя|Конфиденциальность|Язык|Главная|Вернуться к дому|Поверни дом · выбери окно|Повернуть влево|Повернуть вправо|Выбери мир из списка.|К проектам|Интерактивный дом|Открываем|Публичная ссылка пока не добавлена.|Играть — демо 1|Играть — демо 2|Личный мир, в котором можно исследовать свои чувства и настроение. Здесь есть место всем эмоциям.|Маленькие совместные приключения, настоящие события и воспоминания с близкими людьми.|Игра об интуиции, любопытстве и открытиях без давления.|Письмо, по которому можно пройти. Маленький игровой мир, чтобы поделиться чем-то личным.|MiFiL — дом маленьких миров: игр и приложений, рождённых из любопытства, творчества и желания делиться теплом. Место, где можно быть со всеми своими чувствами.|MiFiL начался с желания создать своё творческое пространство, дом для идей и детских мечтаний. Это по-прежнему место, где можно свободно создавать и делиться теплом с другими.|Сайт хранит выбор языка локально в браузере. У отдельных игр может быть своя информация о конфиденциальности. Полный текст политики сайта готовится.',
+lv:'Pasaules|Mazas pasaules, ko atklāt.|Par MiFiL|No radītājas|Privātums|Valoda|Sākums|Atgriezties pie mājas|Pagriez māju · izvēlies logu|Pagriezt pa kreisi|Pagriezt pa labi|Izvēlies pasauli sarakstā.|Uz projektiem|Interaktīva māja|Atveram|Publiska saite vēl nav pievienota.|Spēlēt 1. demo|Spēlēt 2. demo|Personīga pasaule, kur iepazīt savas jūtas un noskaņojumu. Te ir vieta visām emocijām.|Mazi kopīgi piedzīvojumi, īsti dzīves mirkļi un atmiņas ar tuvajiem.|Spēle par intuīciju, zinātkāri un atklājumiem bez spiediena.|Vēstule, kurai var iziet cauri. Maza spēlējama pasaule, lai dalītos ar ko personīgu.|MiFiL ir mazu pasauļu mājas — spēles un lietotnes, kas radušās no zinātkāres, radošuma un vēlmes dalīties siltumā. Vieta, kur būt ar visām savām jūtām.|MiFiL sākās ar vēlmi radīt savu radošo telpu, mājas idejām un bērnības sapņiem. Tā joprojām ir vieta, kur brīvi radīt un dalīties siltumā.|Vietne saglabā valodas izvēli lokāli pārlūkā. Atsevišķām spēlēm var būt sava privātuma informācija. Pilna vietnes politika tiek gatavota.',
+uk:'Світи|Маленькі світи, які можна відкрити.|Про MiFiL|Від авторки|Конфіденційність|Мова|Головна|Повернутися до будинку|Поверни будинок · обери вікно|Повернути ліворуч|Повернути праворуч|Обери світ зі списку.|До проєктів|Інтерактивний будинок|Відкриваємо|Публічне посилання ще не додано.|Грати — демо 1|Грати — демо 2|Особистий світ, у якому можна досліджувати свої почуття та настрій. Тут є місце всім емоціям.|Маленькі спільні пригоди, справжні життєві миті та спогади з близькими.|Гра про інтуїцію, цікавість і відкриття без тиску.|Лист, яким можна пройти. Маленький ігровий світ, щоб поділитися чимось особистим.|MiFiL — дім маленьких світів: ігор і застосунків, народжених із цікавості, творчості й бажання ділитися теплом. Місце, де можна бути з усіма своїми почуттями.|MiFiL почався з бажання створити власний творчий простір, дім для ідей і дитячих мрій. Це й досі місце для вільної творчості та обміну теплом.|Сайт зберігає вибір мови локально у браузері. Окремі ігри можуть мати власну інформацію про конфіденційність. Повна політика сайту готується.',
+de:'Welten|Kleine Welten zum Entdecken.|Über MiFiL|Von der Entwicklerin|Datenschutz|Sprache|Startseite|Zurück zum Haus|Drehen · Fenster auswählen|Nach links drehen|Nach rechts drehen|Wähle eine Welt aus der Liste.|Zu den Projekten|Interaktives Haus|Wird geöffnet|Ein öffentlicher Link wurde noch nicht hinzugefügt.|Demo 1 spielen|Demo 2 spielen|Eine persönliche Welt für deine Gefühle und Stimmungen.|Kleine gemeinsame Abenteuer und Erinnerungen mit nahestehenden Menschen.|Ein Spiel über Intuition, Neugier und Entdeckungen ohne Druck.|Ein Brief, den du durchwandern kannst.|MiFiL ist ein Zuhause für kleine Welten, Spiele und Apps. Ein Ort für all deine Gefühle.|MiFiL begann als persönlicher kreativer Raum für Ideen und Kindheitsträume.|Die Website speichert die Sprachwahl lokal im Browser. Die vollständige Richtlinie wird vorbereitet.',
+es:'Mundos|Pequeños mundos por descubrir.|Sobre MiFiL|De la creadora|Privacidad|Idioma|Inicio|Volver a la casa|Gira la casa · elige una ventana|Girar a la izquierda|Girar a la derecha|Elige un mundo de la lista.|Ir a los proyectos|Casa interactiva|Abriendo|Aún no se ha añadido un enlace público.|Jugar demo 1|Jugar demo 2|Un mundo personal para explorar tus sentimientos y estados de ánimo.|Pequeñas aventuras compartidas y recuerdos con tus seres queridos.|Un juego de intuición, curiosidad y descubrimientos sin presión.|Una carta que puedes recorrer.|MiFiL es un hogar para pequeños mundos, juegos y aplicaciones. Un lugar para todos tus sentimientos.|MiFiL nació como un espacio creativo personal para ideas y sueños de infancia.|El sitio guarda el idioma elegido en tu navegador. La política completa está en preparación.',
+fr:'Mondes|De petits mondes à découvrir.|À propos de MiFiL|De la créatrice|Confidentialité|Langue|Accueil|Retour à la maison|Tourne la maison · choisis une fenêtre|Tourner à gauche|Tourner à droite|Choisis un monde dans la liste.|Aller aux projets|Maison interactive|Ouverture|Aucun lien public n’a encore été ajouté.|Jouer à la démo 1|Jouer à la démo 2|Un monde personnel pour explorer tes sentiments et tes humeurs.|De petites aventures partagées et des souvenirs avec tes proches.|Un jeu d’intuition, de curiosité et de découverte sans pression.|Une lettre que tu peux parcourir.|MiFiL est un foyer pour de petits mondes, des jeux et des applications. Un lieu pour tous tes sentiments.|MiFiL est né comme un espace de création personnel pour des idées et des rêves d’enfance.|Le site enregistre la langue dans ton navigateur. La politique complète est en préparation.',
+pt:'Mundos|Pequenos mundos para descobrir.|Sobre MiFiL|Da criadora|Privacidade|Idioma|Início|Voltar à casa|Gira a casa · escolhe uma janela|Girar à esquerda|Girar à direita|Escolhe um mundo da lista.|Ir para os projetos|Casa interativa|A abrir|Ainda não foi adicionado um link público.|Jogar demo 1|Jogar demo 2|Um mundo pessoal para explorar sentimentos e estados de espírito.|Pequenas aventuras em conjunto e memórias com pessoas queridas.|Um jogo sobre intuição, curiosidade e descobertas sem pressão.|Uma carta que podes percorrer.|MiFiL é uma casa para pequenos mundos, jogos e aplicações. Um lugar para todos os sentimentos.|MiFiL nasceu como um espaço criativo pessoal para ideias e sonhos de infância.|O site guarda o idioma no navegador. A política completa está a ser preparada.',
+it:'Mondi|Piccoli mondi da scoprire.|Su MiFiL|Dalla creatrice|Privacy|Lingua|Home|Torna alla casa|Ruota la casa · scegli una finestra|Ruota a sinistra|Ruota a destra|Scegli un mondo dall’elenco.|Vai ai progetti|Casa interattiva|Apertura|Non è ancora stato aggiunto un link pubblico.|Gioca alla demo 1|Gioca alla demo 2|Un mondo personale per esplorare sentimenti e stati d’animo.|Piccole avventure insieme e ricordi con le persone care.|Un gioco di intuizione, curiosità e scoperte senza pressioni.|Una lettera da attraversare.|MiFiL è una casa per piccoli mondi, giochi e app. Un luogo per tutti i tuoi sentimenti.|MiFiL è nato come spazio creativo personale per idee e sogni d’infanzia.|Il sito salva la lingua nel browser. La politica completa è in preparazione.',
+pl:'Światy|Małe światy do odkrycia.|O MiFiL|Od twórczyni|Prywatność|Język|Start|Wróć do domu|Obróć dom · wybierz okno|Obróć w lewo|Obróć w prawo|Wybierz świat z listy.|Przejdź do projektów|Interaktywny dom|Otwieranie|Nie dodano jeszcze publicznego linku.|Zagraj w demo 1|Zagraj w demo 2|Osobisty świat do odkrywania uczuć i nastrojów.|Małe wspólne przygody i wspomnienia z bliskimi.|Gra o intuicji, ciekawości i odkrywaniu bez presji.|List, przez który można przejść.|MiFiL to dom małych światów, gier i aplikacji. Miejsce na wszystkie uczucia.|MiFiL powstał jako osobista przestrzeń twórcza dla pomysłów i dziecięcych marzeń.|Witryna zapisuje język w przeglądarce. Pełna polityka jest w przygotowaniu.',
+tr:'Dünyalar|Keşfedilecek küçük dünyalar.|MiFiL hakkında|Yaratıcısından|Gizlilik|Dil|Ana sayfa|Eve dön|Evi döndür · bir pencere seç|Sola döndür|Sağa döndür|Listeden bir dünya seç.|Projelere geç|Etkileşimli ev|Açılıyor|Henüz herkese açık bir bağlantı eklenmedi.|Demo 1 oyna|Demo 2 oyna|Duygularını keşfedebileceğin kişisel bir dünya.|Küçük ortak maceralar ve sevdiklerinle anılar.|Baskı olmadan sezgi, merak ve keşif üzerine bir oyun.|İçinde yürüyebileceğin bir mektup.|MiFiL küçük dünyalar, oyunlar ve uygulamalar için bir ev. Tüm duyguların için bir yer.|MiFiL fikirler ve çocukluk hayalleri için kişisel bir yaratıcı alan olarak başladı.|Site dil tercihini tarayıcıda saklar. Tam politika hazırlanıyor.',
+ar:'عوالم|عوالم صغيرة تنتظر الاكتشاف.|عن MiFiL|من المطوّرة|الخصوصية|اللغة|الرئيسية|العودة إلى المنزل|أدر المنزل · اختر نافذة|أدر إلى اليسار|أدر إلى اليمين|اختر عالماً من القائمة.|انتقل إلى المشاريع|منزل تفاعلي|جارٍ الفتح|لم يُضف رابط عام بعد.|العب النسخة التجريبية 1|العب النسخة التجريبية 2|عالم شخصي لاستكشاف مشاعرك وحالاتك المزاجية.|مغامرات صغيرة مشتركة وذكريات مع أحبائك.|لعبة عن الحدس والفضول والاكتشاف دون ضغط.|رسالة يمكنك التجول داخلها.|MiFiL منزل لعوالم صغيرة وألعاب وتطبيقات. مكان لكل مشاعرك.|بدأ MiFiL مساحة إبداعية شخصية للأفكار وأحلام الطفولة.|يحفظ الموقع اختيار اللغة في متصفحك. يجري إعداد السياسة الكاملة.',
+hi:'दुनियाएँ|खोजने के लिए छोटी-छोटी दुनियाएँ।|MiFiL के बारे में|रचनाकार की ओर से|गोपनीयता|भाषा|मुखपृष्ठ|घर पर लौटें|घर घुमाएँ · खिड़की चुनें|बाएँ घुमाएँ|दाएँ घुमाएँ|सूची से एक दुनिया चुनें।|परियोजनाओं पर जाएँ|इंटरैक्टिव घर|खुल रहा है|अभी सार्वजनिक लिंक नहीं जोड़ा गया है।|डेमो 1 खेलें|डेमो 2 खेलें|अपनी भावनाओं और मनोदशा को समझने की निजी दुनिया।|छोटे साझा रोमांच और अपनों के साथ यादें।|बिना दबाव के अंतर्ज्ञान, जिज्ञासा और खोज का खेल।|एक पत्र जिसके अंदर आप चल सकते हैं।|MiFiL छोटी दुनियाओं, खेलों और ऐप का घर है। हर भावना के लिए एक जगह।|MiFiL की शुरुआत विचारों और बचपन के सपनों के लिए निजी रचनात्मक जगह के रूप में हुई।|साइट भाषा पसंद ब्राउज़र में सहेजती है। पूरी नीति तैयार की जा रही है।',
+zh:'世界|等待探索的小小世界。|关于 MiFiL|创作者的话|隐私|语言|首页|回到小屋|转动小屋 · 选择窗户|向左旋转|向右旋转|从列表中选择一个世界。|前往项目|互动小屋|正在打开|尚未添加公开链接。|试玩 1|试玩 2|探索情绪与心情的私人世界。|与亲近的人一起经历小冒险，留下回忆。|一个关于直觉、好奇心和轻松探索的游戏。|一封可以走进去的信。|MiFiL 是小小世界、游戏与应用的家。这里可以容纳你的所有感受。|MiFiL 最初是一个个人创作空间，是想法和童年梦想的家。|网站在浏览器保存语言选择。完整政策正在准备中。',
+ja:'世界|見つけてみたい小さな世界。|MiFiLについて|制作者より|プライバシー|言語|ホーム|家に戻る|家を回して窓を選ぶ|左へ回転|右へ回転|一覧から世界を選んでください。|プロジェクトへ|インタラクティブな家|開いています|公開リンクはまだ追加されていません。|デモ1を遊ぶ|デモ2を遊ぶ|自分の気持ちや心の状態を探る個人的な世界。|大切な人と一緒に小さな冒険をし、思い出を残します。|直感と好奇心、気楽な発見を楽しむゲーム。|中を歩ける手紙。|MiFiLは小さな世界、ゲームやアプリの家です。どんな感情にも居場所があります。|MiFiLはアイデアや子どもの頃の夢のための個人的な創作空間として始まりました。|本サイトは言語設定をブラウザー内に保存します。完全なポリシーは準備中です。',
+ko:'세계|발견할 수 있는 작은 세계들.|MiFiL 소개|창작자의 이야기|개인정보|언어|홈|집으로 돌아가기|집을 돌려 창문을 선택하세요|왼쪽으로 회전|오른쪽으로 회전|목록에서 세계를 선택하세요.|프로젝트로 이동|인터랙티브 하우스|여는 중|아직 공개 링크가 추가되지 않았습니다.|데모 1 플레이|데모 2 플레이|감정과 기분을 탐색하는 개인적인 세계.|소중한 사람과 함께하는 작은 모험과 추억.|부담 없이 직관과 호기심, 발견을 즐기는 게임.|걸어 다닐 수 있는 편지.|MiFiL은 작은 세계, 게임과 앱의 집입니다. 모든 감정을 위한 공간입니다.|MiFiL은 아이디어와 어린 시절의 꿈을 위한 개인 창작 공간으로 시작되었습니다.|사이트는 언어 선택을 브라우저에 저장합니다. 전체 정책은 준비 중입니다.'};
+const base=rows.en.split('|');window.mifilContent=Object.fromEntries(Object.entries(rows).map(([l,row])=>{const a=row.split('|');if(a.length!==keys.length)console.warn('Locale length:',l,a.length);return [l,Object.fromEntries(keys.map((k,i)=>[k,a[i]||base[i]]))]}));
+})();

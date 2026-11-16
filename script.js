@@ -1,85 +1,24 @@
-(function () {
-  const contentByLang = window.mifilContent;
-  if (!contentByLang) return;
-
-  const titleEl = document.getElementById("hero-title");
-  const subtitleEl = document.getElementById("hero-subtitle");
-  const enterLinkEl = document.getElementById("enter-link");
-  const langButtons = document.querySelectorAll(".lang-button");
-
-  const supportedLangs = Object.keys(contentByLang);
-
-  function detectInitialLang() {
-    const savedLang = localStorage.getItem("mifil-lang");
-    if (savedLang && supportedLangs.includes(savedLang)) return savedLang;
-
-    const browserLang = (navigator.language || "en").slice(0, 2).toLowerCase();
-    if (supportedLangs.includes(browserLang)) return browserLang;
-
-    return "en";
-  }
-
-  function renderProject(project) {
-    const card = document.getElementById(project.id);
-    if (!card) return;
-
-    const title = card.querySelector(".project-title");
-    const description = card.querySelector(".project-description");
-
-    if (title) title.innerHTML = project.title.replace(/\n/g, "<br>");
-    if (description) description.innerHTML = project.description.replace(/\n/g, "<br>");
-
-    card.setAttribute(
-      "aria-label",
-      `${project.title.replace(/\n/g, " ")} — ${project.description.replace(/\n/g, " ")}`
-    );
-
-    if (card.tagName === "A") {
-      if (!project.disabled) {
-        card.href = project.url || "#";
-        card.target = project.external ? "_blank" : "_self";
-        card.rel = project.external ? "noopener noreferrer" : "";
-      } else {
-        card.removeAttribute("href");
-        card.removeAttribute("target");
-        card.removeAttribute("rel");
-      }
-    }
-
-    if (project.disabled) {
-      card.classList.add("is-disabled");
-      card.setAttribute("aria-disabled", "true");
-    } else {
-      card.classList.remove("is-disabled");
-      card.removeAttribute("aria-disabled");
-    }
-  }
-
-  function setLanguage(lang) {
-    const content = contentByLang[lang];
-    if (!content) return;
-
-    document.documentElement.lang = lang;
-    localStorage.setItem("mifil-lang", lang);
-
-    if (titleEl) titleEl.textContent = content.hero.title;
-    if (subtitleEl) subtitleEl.textContent = content.hero.subtitle;
-    if (enterLinkEl) enterLinkEl.textContent = content.hero.enterLabel;
-
-    content.projects.forEach(renderProject);
-
-    langButtons.forEach((button) => {
-      const active = button.dataset.lang === lang;
-      button.classList.toggle("is-active", active);
-      button.setAttribute("aria-pressed", active ? "true" : "false");
-    });
-  }
-
-  langButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      setLanguage(button.dataset.lang);
-    });
-  });
-
-  setLanguage(detectInitialLang());
+(() => {
+'use strict';
+const dictionary=window.mifilContent, languages=window.MiFiLLanguages, projects=window.MiFiLProjects;
+const $=id=>document.getElementById(id);
+const storage={get(k){try{return localStorage.getItem(k)}catch{return null}},set(k,v){try{localStorage.setItem(k,v)}catch{}}};
+const session={get(k){try{return sessionStorage.getItem(k)}catch{return null}},set(k,v){try{sessionStorage.setItem(k,v)}catch{}}};
+let language='en',house=null,leaving=false,navTimer=null;
+const langSelect=$('language');
+function initial(){const saved=storage.get('mifil-lang');if(dictionary[saved])return saved;for(const candidate of (navigator.languages||[navigator.language||'en'])){let code=candidate.toLowerCase().split('-')[0];if(dictionary[code])return code;}return 'en';}
+function text(key){return dictionary[language]?.[key]||dictionary.en[key]||key;}
+function setLanguage(lang){if(!dictionary[lang])return;language=lang;document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';storage.set('mifil-lang',lang);if(langSelect)langSelect.value=lang;document.querySelectorAll('[data-i]').forEach(e=>e.textContent=text(e.dataset.i));document.querySelectorAll('[data-label]').forEach(e=>e.setAttribute('aria-label',text(e.dataset.label)));if(langSelect)langSelect.setAttribute('aria-label',text('language'));renderDetail();}
+function renderDetail(){if(!$('detail-title'))return;const candidate=new URLSearchParams(location.search).get('view')||'about';const id=Object.hasOwn(projects,candidate)||['about','creator','privacy'].includes(candidate)?candidate:'about';document.body.dataset.view=id;const project=projects[id],title=project?.name||text(id);$('detail-title').textContent=title;$('detail-kicker').textContent=project?text('worlds'):'MiFiL';$('detail-description').textContent=text(project?id:id+'Text');document.title=title+' · MiFiL';const box=$('detail-actions');box.replaceChildren();if(project){for(const item of project.links){const a=document.createElement('a');a.href=item.href;a.textContent=text(item.label);box.append(a);}if(!project.links.length){const p=document.createElement('p');p.className='status';p.textContent=text('unlinked');box.append(p);}}}
+if(langSelect){langSelect.replaceChildren(...Object.entries(languages).map(([code,label])=>{let opt=document.createElement('option');opt.value=code;opt.textContent=label;return opt;}));langSelect.addEventListener('change',()=>setLanguage(langSelect.value));}
+if($('year'))$('year').textContent=new Date().getFullYear();setLanguage(initial());
+const links=[...document.querySelectorAll('[data-project]')];const canvas=$('house-canvas');if(!canvas)return;
+function setActive(id){links.forEach(a=>a.classList.toggle('is-active',a.dataset.project===id));}
+function clearLabel(){$('window-label').hidden=true;}
+function showFallback(){canvas.classList.remove('ready');$('fallback').hidden=false;$('scene-controls').hidden=true;$('fallback-hint').hidden=false;house=null;clearLabel();if(leaving){const a=links.find(a=>a.classList.contains('is-active'));if(a)location.assign(a.href);}}
+function go(id){const link=links.find(a=>a.dataset.project===id);if(!link||leaving)return;if(!house){location.assign(link.href);return;}leaving=true;setActive(id);clearLabel();$('scene-status').textContent=text('opening')+' '+projects[id].name;for(const el of document.querySelectorAll('.rotate'))el.disabled=true;const destination=link.href;const navigate=()=>{clearTimeout(navTimer);session.set('mifil-house-angle',String(house?.angle??0));location.assign(destination);};try{if(!house.enter(id,navigate)){navigate();return;}navTimer=setTimeout(navigate,2200);}catch{navigate();}}
+try{if(!window.MiFiLHouse)throw Error('House unavailable');const previous=session.get('mifil-house-angle');house=new window.MiFiLHouse(canvas,{angle:previous===null?undefined:Number(previous),onSelect:go,onHover(id,point){if(leaving)return;setActive(id);const tip=$('window-label');if(id&&point){tip.textContent=projects[id].name;tip.style.left=point.x+'px';tip.style.top=point.y+'px';tip.hidden=false;}else clearLabel();},onEnter(){if(!matchMedia('(prefers-reduced-motion: reduce)').matches)$('transition').classList.add('enter');},onLost:showFallback});canvas.classList.add('ready');$('fallback').hidden=true;$('scene-controls').hidden=false;}catch(e){console.warn('MiFiL house fallback:',e);showFallback();}
+links.forEach(a=>{const id=a.dataset.project;a.addEventListener('click',e=>{if(!house||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||e.button!==0)return;e.preventDefault();go(id);});const start=()=>{if(leaving)return;setActive(id);house?.setHighlight(id);};const stop=()=>{if(leaving)return;setActive(null);house?.setHighlight(null);};a.addEventListener('mouseenter',start);a.addEventListener('mouseleave',stop);a.addEventListener('focus',start);a.addEventListener('blur',stop);});
+$('rotate-left').addEventListener('click',()=>house?.rotate(-Math.PI/2));$('rotate-right').addEventListener('click',()=>house?.rotate(Math.PI/2));
+window.addEventListener('pageshow',e=>{if(e.persisted)location.reload();});
 })();

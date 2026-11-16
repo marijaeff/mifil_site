@@ -1,69 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MiFiL</title>
-  <meta name="description" content="A place to feel. Not to win. To be." />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <div class="page-glow"></div>
-  <div class="house-silhouette" aria-hidden="true"></div>
-
- <div class="page-glow"></div>
-<div class="house-silhouette" aria-hidden="true"></div>
-
-<header class="site-header">
-  <a class="logo" href="#" aria-label="MiFiL home">
-    <img src="logo.png" alt="MiFiL logo">
-  </a>
-
-  <div class="lang-switcher" aria-label="Language switcher">
-    <button type="button" class="lang-button" data-lang="lv" aria-pressed="false">LV</button>
-    <button type="button" class="lang-button" data-lang="en" aria-pressed="false">EN</button>
-    <button type="button" class="lang-button" data-lang="ru" aria-pressed="false">RU</button>
-  </div>
-</header>
-
-<main>
-  <section class="hero hero-screen">
-    <div class="top-window" aria-hidden="true"></div>
-
-    <section class="hero-copy">
-      <h1 id="hero-title"></h1>
-      <p class="hero-subtitle" id="hero-subtitle"></p>
-      <a class="enter-button" href="#projects" id="enter-link"></a>
-    </section>
-  </section>
-
-  <section class="projects-section" id="projects" aria-label="Projects">
-    <div class="projects">
-      <a class="project-card" id="project-1" href="#" target="_blank" rel="noopener noreferrer">
-        <span class="card-top-light" aria-hidden="true"></span>
-        <h2 class="project-title"></h2>
-        <p class="project-description"></p>
-      </a>
-
-      <div class="project-card" id="project-2" aria-disabled="true">
-        <span class="card-top-light" aria-hidden="true"></span>
-        <h2 class="project-title"></h2>
-        <p class="project-description"></p>
-      </div>
-
-      <div class="project-card" id="project-3" aria-disabled="true">
-        <span class="card-top-light" aria-hidden="true"></span>
-        <h2 class="project-title"></h2>
-        <p class="project-description"></p>
-      </div>
-    </div>
-  </section>
-</main>
-
-  <script src="texts.js"></script>
-  <script src="script.js"></script>
-</body>
-</html>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b1728"><meta name="description" content="MiFiL — a home for little worlds, games and apps."><title>MiFiL — A home for little worlds</title><link rel="icon" href="assets/icon.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css"><script defer src="texts.js"></script><script defer src="js/house.js"></script><script defer src="script.js"></script></head>
+<body><a class="skip" href="#worlds" data-i="skip">Skip to projects</a><div class="site-shell">
+<header class="site-header"><a class="brand" href="index.html" aria-label="MiFiL — Home"><img src="assets/mifil-logo.png" alt="MiFiL" width="115" height="70"></a><a class="header-link" href="page.html?view=about" data-i="about">About MiFiL</a></header>
+<main id="main" class="home"><section class="worlds" id="worlds" aria-labelledby="worlds-title"><div class="worlds-inner"><p class="eyebrow"><span class="warm-dot"></span> MiFiL</p><h1 id="worlds-title" data-i="worlds">Worlds</h1><p class="intro" data-i="intro">Little worlds to discover.</p><nav class="project-list" aria-label="Projects" data-label="worlds"><a data-project="livemo" href="page.html?view=livemo"><span>livEmo</span><span class="arrow" aria-hidden="true">↗</span></a><a data-project="our-quest" href="page.html?view=our-quest"><span>Our Quest</span><span class="arrow" aria-hidden="true">↗</span></a><a data-project="feel" href="page.html?view=feel"><span>FEEL</span><span class="arrow" aria-hidden="true">↗</span></a><a data-project="playable-letter" href="page.html?view=playable-letter"><span>Playable Letter</span><span class="arrow" aria-hidden="true">↗</span></a></nav></div></section>
+<section class="scene" aria-label="Interactive house" data-label="house"><div class="scene-stage" id="stage"><div class="scene-halo"></div><div class="scene-fallback" id="fallback"><img src="assets/house-fallback.svg" alt="" width="600" height="500"></div><canvas id="house-canvas" aria-hidden="true"></canvas><div class="window-label" id="window-label" hidden></div></div><div class="scene-controls" id="scene-controls" hidden><button class="rotate" type="button" id="rotate-left" data-label="left" aria-label="Rotate left"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 6-6 6 6 6M6 12h12"/></svg></button><span class="scene-hint" data-i="rotate">Drag to turn · choose a window</span><button class="rotate" type="button" id="rotate-right" data-label="right" aria-label="Rotate right"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 6 6 6-6 6m6-6H6"/></svg></button></div><p class="fallback-hint" id="fallback-hint" data-i="fallback" hidden>Choose a world from the list.</p><span class="sr-only" id="scene-status" aria-live="polite"></span></section></main>
+<footer class="site-footer"><span class="copyright">© <span id="year">2026</span> MiFiL</span><nav class="footer-links" aria-label="Site information"><a href="page.html?view=about" data-i="about">About MiFiL</a><a href="page.html?view=creator" data-i="creator">From the creator</a><a href="page.html?view=privacy" data-i="privacy">Privacy</a></nav><div class="language"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></svg><label class="sr-only" for="language" data-i="language">Language</label><select id="language" aria-label="Language"><option value="en">English</option></select><span aria-hidden="true" class="select-chevron">⌄</span></div></footer></div><div class="transition" id="transition" aria-hidden="true"></div></body></html>
