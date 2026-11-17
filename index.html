@@ -12,18 +12,19 @@
 
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="assets/watercolor-home.css">
 
     <script defer src="texts.js"></script>
     <script defer src="js/house.js"></script>
     <script defer src="script.js"></script>
   </head>
-  <body>
+  <body class="home-body">
     <a class="skip" href="#worlds" data-i="skip">Skip to projects</a>
 
     <div class="site-shell">
       <header class="site-header">
         <a class="brand" href="index.html" aria-label="MiFiL — Home">
-          <img src="assets/mifil-logo.png" alt="MiFiL" width="115" height="70">
+          <img src="assets/logo-stacked.svg" alt="MiFiL" width="140" height="88">
         </a>
 
         <a class="header-link" href="page.html?view=about" data-i="about">
@@ -70,6 +71,14 @@
 
             <canvas id="house-canvas" aria-hidden="true"></canvas>
             <div class="window-label" id="window-label" hidden></div>
+
+            <!-- Mobile: labels follow the actual visible 3D windows. -->
+            <div class="window-names" id="window-names" hidden>
+              <a class="window-name" data-window-project="livemo" href="page.html?view=livemo" hidden>livEmo</a>
+              <a class="window-name" data-window-project="our-quest" href="page.html?view=our-quest" hidden>Our Quest</a>
+              <a class="window-name" data-window-project="feel" href="page.html?view=feel" hidden>FEEL</a>
+              <a class="window-name" data-window-project="playable-letter" href="page.html?view=playable-letter" hidden>Playable Letter</a>
+            </div>
           </div>
 
           <div class="scene-controls" id="scene-controls" hidden>

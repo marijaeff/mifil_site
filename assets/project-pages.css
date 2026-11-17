@@ -1,0 +1,404 @@
+/*
+ * MiFiL — Watercolor project pages (v6)
+ * =====================================
+ * Project pages share the homepage's sand paper, dark teal, amber light,
+ * organic watercolor and calm typography. This stylesheet intentionally
+ * overrides the old light-blue project gradients in style.css without
+ * changing the 3D homepage, translation system or navigation logic.
+ *
+ * Quick edits:
+ * --paper      page background
+ * --ink        headings and links
+ * --warm       amber accent
+ * .detail-art  watercolor position and illustration scale
+ */
+
+.detail-body {
+  --paper: #f7dcba;
+  --ink: #183b48;
+  --warm: #b27b47;
+  --muted: #55717b;
+  --ivory: var(--ink);
+  --amber: var(--warm);
+  --line: rgba(89, 76, 63, .22);
+  color: var(--ink);
+  background: var(--paper) url('sand-paper.webp') center / cover fixed;
+}
+
+/* The old blue, lilac and green full-page gradients are removed. */
+.detail-body[data-view="livemo"],
+.detail-body[data-view="our-quest"],
+.detail-body[data-view="feel"],
+.detail-body[data-view="playable-letter"] {
+  background: var(--paper) url('sand-paper.webp') center / cover fixed;
+}
+
+.detail-body::before,
+.detail-body::after {
+  display: none;
+}
+
+.detail-body .site-shell {
+  width: min(100%, 1586px);
+  padding-inline: clamp(24px, 6.1vw, 94px);
+}
+
+.detail-body .site-header {
+  min-height: 122px;
+}
+
+.detail-body .brand img {
+  display: block;
+  width: 140px;
+  height: auto;
+}
+
+.detail-body .header-link,
+.detail-body .back,
+.detail-body .footer-links a {
+  color: #315463;
+}
+
+.detail-body .header-link:hover,
+.detail-body .back:hover,
+.detail-body .footer-links a:hover {
+  color: #98653b;
+}
+
+.detail-body .detail {
+  flex: 1;
+  min-height: min(660px, 70vh);
+  display: grid;
+  grid-template-columns: minmax(0, .94fr) minmax(0, 1.06fr);
+  align-content: center;
+  align-items: center;
+  gap: 8px clamp(30px, 4vw, 66px);
+  padding: 12px 0 45px;
+}
+
+.detail-body .back {
+  grid-column: 1 / -1;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  width: max-content;
+  min-height: 44px;
+  font-size: 13px;
+  letter-spacing: .015em;
+}
+
+.detail-body .back > span[aria-hidden] {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(131, 97, 66, .32);
+  border-radius: 50%;
+  font-size: 18px;
+  transition: background .2s ease, border-color .2s ease;
+}
+
+.detail-body .back:hover > span[aria-hidden] {
+  border-color: #bb906b;
+  background: rgba(238, 208, 164, .4);
+}
+
+.detail-body .detail-content {
+  max-width: 580px;
+  position: relative;
+  z-index: 2;
+  padding-bottom: 18px;
+}
+
+.detail-body .detail-kicker {
+  margin: 0 0 22px;
+  color: #91603c;
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .19em;
+}
+
+.detail-body .detail-content h1 {
+  margin: 0 0 26px;
+  color: var(--ink);
+  font-size: clamp(44px, 5.5vw, 78px);
+  font-weight: 350;
+  line-height: 1.11;
+  letter-spacing: -.055em;
+  text-wrap: balance;
+}
+
+.detail-body .detail-description {
+  max-width: 570px;
+  margin: 0;
+  color: #465e62;
+  font-size: clamp(17px, 1.45vw, 20px);
+  line-height: 1.85;
+  white-space: pre-line;
+  text-wrap: pretty;
+}
+
+.detail-body .detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.detail-body .detail-actions a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 46px;
+  padding: 11px 18px;
+  border: 1px solid #8e7257;
+  border-radius: 8px;
+  background: rgba(246, 224, 191, .4);
+  color: #1b434f;
+  font-size: 14px;
+  transition: background .2s ease, border-color .2s ease;
+}
+
+.detail-body .detail-actions a:hover {
+  background: rgba(242, 205, 158, .75);
+  border-color: #bc8a5e;
+}
+
+.detail-body .status {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  max-width: 440px;
+  margin: 0;
+  color: #6e736e;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.detail-body .status::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  background: #cb9c6a;
+  border-radius: 50%;
+}
+
+/* One fully visible window vignette in a quiet watercolor night. */
+.detail-body .detail-art {
+  min-width: 0;
+  width: 100%;
+  height: clamp(365px, 43vw, 560px);
+  min-height: 365px;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  overflow: visible;
+}
+
+.detail-body .detail-art::before {
+  content: '';
+  position: absolute;
+  z-index: -2;
+  inset: -13% -10% -11% -12%;
+  background: url('night-watercolor.webp') 63% 49% / cover no-repeat;
+  opacity: .91;
+  /* Fade the watercolor at the art edges: no rectangular cut-off. */
+  -webkit-mask-image: radial-gradient(ellipse 76% 72% at 53% 48%, #000 42%, rgba(0, 0, 0, .87) 68%, transparent 100%);
+  mask-image: radial-gradient(ellipse 76% 72% at 53% 48%, #000 42%, rgba(0, 0, 0, .87) 68%, transparent 100%);
+  pointer-events: none;
+}
+
+.detail-body .detail-art::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 4% 8%;
+  background: radial-gradient(ellipse at 49% 48%, rgba(227, 183, 116, .11), transparent 57%);
+  pointer-events: none;
+}
+
+.detail-body .detail-illustration {
+  width: min(100%, 610px);
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 14px 22px rgba(4, 28, 36, .11));
+}
+
+/* A small route to neighboring worlds, without making the page a network feed. */
+.detail-body .detail-worlds {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 16px 35px;
+  padding: 24px 0 18px;
+  border-top: 1px solid rgba(113, 85, 63, .20);
+}
+
+.detail-body .detail-worlds-label {
+  color: #906c4f;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.detail-body .detail-worlds-links {
+  display: flex;
+  gap: 6px 24px;
+  flex-wrap: wrap;
+}
+
+.detail-body .detail-worlds-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 35px;
+  color: #365764;
+  font-size: 13px;
+  transition: color .2s;
+}
+
+.detail-body .detail-worlds-links a:hover,
+.detail-body .detail-worlds-links a.is-current {
+  color: #97623a;
+}
+
+.detail-body .detail-worlds-links a.is-current {
+  text-decoration: underline;
+  text-underline-offset: 7px;
+  text-decoration-thickness: 1px;
+}
+
+.detail-body[data-view="about"] .detail-worlds,
+.detail-body[data-view="creator"] .detail-worlds,
+.detail-body[data-view="privacy"] .detail-worlds {
+  display: none;
+}
+
+.detail-body .site-footer {
+  min-height: 130px;
+  padding: 30px 0 52px;
+  align-content: start;
+  color: #486776;
+  border-top: 1px solid rgba(112, 83, 62, .20);
+}
+
+.detail-body .language select {
+  color: #315463;
+}
+
+.detail-body .language option {
+  color: #173945;
+  background: #f4e2c8;
+}
+
+@media (max-width: 1000px) and (min-width: 761px) {
+  .detail-body .detail {
+    gap: 12px 18px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .detail-body .detail-art {
+    height: 420px;
+  }
+}
+
+@media (max-width: 760px) {
+  .detail-body {
+    background-attachment: scroll;
+  }
+
+  .detail-body .site-header {
+    min-height: 83px;
+  }
+
+  .detail-body .brand img {
+    width: 112px;
+  }
+
+  .detail-body .detail {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: start;
+    gap: 0;
+    min-height: 0;
+    padding: 12px 0 32px;
+  }
+
+  .detail-body .back {
+    order: 0;
+    margin-bottom: 18px;
+  }
+
+  .detail-body .detail-content {
+    order: 1;
+    padding-bottom: 0;
+  }
+
+  .detail-body .detail-kicker {
+    margin-bottom: 12px;
+  }
+
+  .detail-body .detail-content h1 {
+    font-size: clamp(42px, 12vw, 58px);
+    margin-bottom: 18px;
+  }
+
+  .detail-body .detail-description {
+    font-size: 16px;
+    line-height: 1.77;
+  }
+
+  .detail-body .detail-actions {
+    margin-top: 23px;
+  }
+
+  .detail-body .detail-art {
+    order: 2;
+    min-height: 0;
+    height: clamp(250px, 90vw, 410px);
+    margin-block: 38px 15px;
+  }
+
+  .detail-body .detail-art::before {
+    inset: -2% -6% -8% -6%;
+    background-position: 65% 50%;
+  }
+
+  .detail-body .detail-illustration {
+    max-height: 100%;
+    width: 100%;
+  }
+
+  .detail-body .detail-worlds {
+    order: 3;
+    display: block;
+    padding: 20px 0 15px;
+  }
+
+  .detail-body .detail-worlds-label {
+    display: block;
+    margin-bottom: 9px;
+  }
+
+  .detail-body .detail-worlds-links {
+    gap: 1px 18px;
+  }
+
+  .detail-body .site-footer {
+    min-height: 0;
+    padding: 18px 0 25px;
+    gap: 10px 16px;
+  }
+}
+
+[dir="rtl"] .detail-worlds {
+  direction: rtl;
+}

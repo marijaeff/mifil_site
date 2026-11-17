@@ -38,7 +38,7 @@ window.MiFiLLanguages = {
 
 window.mifilContent = {
   "en": {
-    "worlds": "Worlds",
+    "worlds": "Projects",
     "intro": "Little worlds to discover.",
     "about": "About MiFiL",
     "creator": "From the creator",
@@ -63,7 +63,7 @@ window.mifilContent = {
     "privacyText": "This website stores your language preference locally in your browser. Individual games may have their own privacy information. The full site policy is being prepared."
   },
   "ru": {
-    "worlds": "Миры",
+    "worlds": "Проекты",
     "intro": "Маленькие миры, которые можно открыть.",
     "about": "О MiFiL",
     "creator": "От создателя",
@@ -88,7 +88,7 @@ window.mifilContent = {
     "privacyText": "Сайт хранит выбор языка локально в браузере. У отдельных игр может быть своя информация о конфиденциальности. Полный текст политики сайта готовится."
   },
   "lv": {
-    "worlds": "Pasaules",
+    "worlds": "Projekti",
     "intro": "Mazas pasaules, ko atklāt.",
     "about": "Par MiFiL",
     "creator": "No radītājas",
@@ -113,7 +113,7 @@ window.mifilContent = {
     "privacyText": "Vietne saglabā valodas izvēli lokāli pārlūkā. Atsevišķām spēlēm var būt sava privātuma informācija. Pilna vietnes politika tiek gatavota."
   },
   "uk": {
-    "worlds": "Світи",
+    "worlds": "Проєкти",
     "intro": "Маленькі світи, які можна відкрити.",
     "about": "Про MiFiL",
     "creator": "Від авторки",
@@ -138,7 +138,7 @@ window.mifilContent = {
     "privacyText": "Сайт зберігає вибір мови локально у браузері. Окремі ігри можуть мати власну інформацію про конфіденційність. Повна політика сайту готується."
   },
   "de": {
-    "worlds": "Welten",
+    "worlds": "Projekte",
     "intro": "Kleine Welten zum Entdecken.",
     "about": "Über MiFiL",
     "creator": "Von der Entwicklerin",
@@ -163,7 +163,7 @@ window.mifilContent = {
     "privacyText": "Die Website speichert die Sprachwahl lokal im Browser. Die vollständige Richtlinie wird vorbereitet."
   },
   "es": {
-    "worlds": "Mundos",
+    "worlds": "Proyectos",
     "intro": "Pequeños mundos por descubrir.",
     "about": "Sobre MiFiL",
     "creator": "De la creadora",
@@ -188,7 +188,7 @@ window.mifilContent = {
     "privacyText": "El sitio guarda el idioma elegido en tu navegador. La política completa está en preparación."
   },
   "fr": {
-    "worlds": "Mondes",
+    "worlds": "Projets",
     "intro": "De petits mondes à découvrir.",
     "about": "À propos de MiFiL",
     "creator": "De la créatrice",
@@ -213,7 +213,7 @@ window.mifilContent = {
     "privacyText": "Le site enregistre la langue dans ton navigateur. La politique complète est en préparation."
   },
   "pt": {
-    "worlds": "Mundos",
+    "worlds": "Projetos",
     "intro": "Pequenos mundos para descobrir.",
     "about": "Sobre MiFiL",
     "creator": "Da criadora",
@@ -238,7 +238,7 @@ window.mifilContent = {
     "privacyText": "O site guarda o idioma no navegador. A política completa está a ser preparada."
   },
   "it": {
-    "worlds": "Mondi",
+    "worlds": "Progetti",
     "intro": "Piccoli mondi da scoprire.",
     "about": "Su MiFiL",
     "creator": "Dalla creatrice",
@@ -263,7 +263,7 @@ window.mifilContent = {
     "privacyText": "Il sito salva la lingua nel browser. La politica completa è in preparazione."
   },
   "pl": {
-    "worlds": "Światy",
+    "worlds": "Projekty",
     "intro": "Małe światy do odkrycia.",
     "about": "O MiFiL",
     "creator": "Od twórczyni",
@@ -288,7 +288,7 @@ window.mifilContent = {
     "privacyText": "Witryna zapisuje język w przeglądarce. Pełna polityka jest w przygotowaniu."
   },
   "tr": {
-    "worlds": "Dünyalar",
+    "worlds": "Projeler",
     "intro": "Keşfedilecek küçük dünyalar.",
     "about": "MiFiL hakkında",
     "creator": "Yaratıcısından",
@@ -313,7 +313,7 @@ window.mifilContent = {
     "privacyText": "Site dil tercihini tarayıcıda saklar. Tam politika hazırlanıyor."
   },
   "ar": {
-    "worlds": "عوالم",
+    "worlds": "المشاريع",
     "intro": "عوالم صغيرة تنتظر الاكتشاف.",
     "about": "عن MiFiL",
     "creator": "من المطوّرة",
@@ -338,7 +338,7 @@ window.mifilContent = {
     "privacyText": "يحفظ الموقع اختيار اللغة في متصفحك. يجري إعداد السياسة الكاملة."
   },
   "hi": {
-    "worlds": "दुनियाएँ",
+    "worlds": "परियोजनाएँ",
     "intro": "खोजने के लिए छोटी-छोटी दुनियाएँ।",
     "about": "MiFiL के बारे में",
     "creator": "रचनाकार की ओर से",
@@ -363,7 +363,7 @@ window.mifilContent = {
     "privacyText": "साइट भाषा पसंद ब्राउज़र में सहेजती है। पूरी नीति तैयार की जा रही है।"
   },
   "zh": {
-    "worlds": "世界",
+    "worlds": "项目",
     "intro": "等待探索的小小世界。",
     "about": "关于 MiFiL",
     "creator": "创作者的话",
@@ -388,7 +388,7 @@ window.mifilContent = {
     "privacyText": "网站在浏览器保存语言选择。完整政策正在准备中。"
   },
   "ja": {
-    "worlds": "世界",
+    "worlds": "プロジェクト",
     "intro": "見つけてみたい小さな世界。",
     "about": "MiFiLについて",
     "creator": "制作者より",

@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 540" aria-hidden="true">
+  <defs>
+    <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#F5C98C" stop-opacity=".46"/>
+      <stop offset=".4" stop-color="#E3B780" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#E3B780" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="glass" x1=".15" y1="0" x2=".87" y2="1">
+      <stop stop-color="#FFF0CB"/>
+      <stop offset=".43" stop-color="#F7D49F"/>
+      <stop offset="1" stop-color="#C88954"/>
+    </linearGradient>
+    <linearGradient id="wood" x1="0" y1="0" x2="1" y2=".35">
+      <stop stop-color="#6C5040"/>
+      <stop offset=".6" stop-color="#A07C5D"/>
+      <stop offset="1" stop-color="#5D453C"/>
+    </linearGradient>
+    <linearGradient id="sill" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#CB9D72"/>
+      <stop offset="1" stop-color="#6E5041"/>
+    </linearGradient>
+    <filter id="soft" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="15"/></filter>
+  </defs>
+  <!-- The warmth is behind the glass, not a harsh glow laid over the wall. -->
+  <ellipse cx="330" cy="266" rx="206" ry="182" fill="url(#halo)"/>
+  <ellipse cx="316" cy="263" rx="127" ry="144" fill="#FFC981" opacity=".18" filter="url(#soft)"/>
+  <!-- A fine roof/eave suggestion, allowing the illustration to feel like a piece of a house. -->
+  <path d="M171 123 Q244 108 312 81 Q385 111 462 119" fill="none" stroke="#B18C6A" stroke-width="8" stroke-linecap="round" opacity=".5"/>
+  <path d="M202 116 Q260 108 312 87 Q369 107 433 115" fill="none" stroke="#E8C9A5" stroke-width="3" opacity=".8"/>
+  <!-- Outer deep timber. -->
+  <rect x="215" y="135" width="207" height="265" rx="9" fill="#4B3934"/>
+  <rect x="221" y="139" width="195" height="255" rx="5" fill="url(#wood)"/>
+  <rect x="236" y="155" width="165" height="218" rx="2" fill="#A97B52"/>
+  <rect x="243" y="160" width="151" height="206" rx="2" fill="url(#glass)"/>
+  <path d="M244 161 Q273 168 292 195 Q277 250 246 284Z" fill="#F7E9D8" opacity=".46"/>
+  <path d="M393 161 Q366 173 351 198 Q365 265 393 299Z" fill="#F7E9D8" opacity=".44"/>
+  <path d="M244 161 Q271 186 268 230 Q266 251 244 278" fill="none" stroke="#E9D1B7" stroke-width="4" opacity=".62"/>
+  <path d="M393 161 Q366 192 372 231 Q375 254 393 296" fill="none" stroke="#E9D1B7" stroke-width="4" opacity=".62"/>
+  <rect x="312" y="157" width="12" height="210" fill="#62493B"/>
+  <rect x="242" y="258" width="154" height="11" fill="#62493B"/>
+  <path d="M318 160 V368 M245 264 H394" stroke="#C5A07A" stroke-width="2" opacity=".45"/>
+  <!-- Deep sill: fully visible, without cropping. -->
+  <path d="M194 392 H444 L459 408 H179Z" fill="url(#sill)"/>
+  <path d="M179 407 H459 L447 424 H191Z" fill="#685043"/>
+  <path d="M206 392 H435" stroke="#E4BD8B" stroke-width="4" opacity=".68"/>
+  <!-- A calm, balanced cat silhouette, with two matching upright ears.
+       Drawn as joined curves so the head, body and tail read as one cat. -->
+  <g fill="#202B2E">
+    <!-- Curled tail, positioned behind the body. -->
+    <path d="M379 375 C397 385 404 373 402 356
+             C401 352 403 348 407 349
+             C412 350 412 356 411 363
+             C410 382 396 393 376 387 Z"/>
+    <!-- Sitting body, with a broad and stable base on the sill. -->
+    <path d="M368 343 C354 343 349 353 348 369
+             C347 379 348 389 357 392
+             L382 392 C386 389 386 379 385 368
+             C384 354 378 343 368 343 Z"/>
+    <!-- Symmetrical head and ears (both tips point upward). -->
+    <path d="M353 326 L354 310 Q354 305 358 309
+             L366 316 Q369 315 372 316
+             L380 309 Q384 305 384 310
+             L385 326 Q389 337 381 343
+             Q369 350 357 343 Q349 337 353 326 Z"/>
+  </g>
+  <g fill="#E9CA8F">
+    <circle cx="363" cy="330" r="1.55"/>
+    <circle cx="374" cy="330" r="1.55"/>
+  </g>
+  <!-- Little plant at the lower right. -->
+  <path d="M476 431 Q465 388 479 342 M477 412 Q492 391 502 374 M473 389 Q457 372 448 360" fill="none" stroke="#6D806A" stroke-width="3.5" stroke-linecap="round"/>
+  <g fill="#71866B"><ellipse cx="478" cy="354" rx="10" ry="19" transform="rotate(21 478 354)"/><ellipse cx="492" cy="383" rx="9" ry="16" transform="rotate(42 492 383)"/><ellipse cx="460" cy="369" rx="8" ry="17" transform="rotate(-37 460 369)"/></g>
+  <path d="M455 416 H498 L492 450 H462Z" fill="#84604A"/>
+  <path d="M454 416 H499" stroke="#C79A73" stroke-width="6" stroke-linecap="round"/>
+  <!-- Three quiet light specks. -->
+  <g fill="#D1AD72"><circle cx="164" cy="227" r="2"/><circle cx="483" cy="196" r="1.5"/><circle cx="187" cy="331" r="1"/></g>
+</svg>

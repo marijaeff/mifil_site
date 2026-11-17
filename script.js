@@ -49,6 +49,9 @@
   const langSelect = $('language');
   const transition = $('transition');
   const stage = $('stage');
+  const windowNames = $('window-names');
+  const mobileLabels = [...document.querySelectorAll('[data-window-project]')];
+  const mobileMedia = matchMedia('(max-width: 760px)');
 
   function initialLanguage() {
     const saved = storage.get('mifil-lang');
@@ -119,6 +122,16 @@
     $('detail-kicker').textContent = project ? text('worlds') : 'MiFiL';
     $('detail-description').textContent = text(project ? id : `${id}Text`);
     document.title = `${title} · MiFiL`;
+
+    document.querySelectorAll('[data-world]').forEach((link) => {
+      const current = link.dataset.world === id;
+      link.classList.toggle('is-current', current);
+      if (current) {
+        link.setAttribute('aria-current', 'page');
+      } else {
+        link.removeAttribute('aria-current');
+      }
+    });
 
     const box = $('detail-actions');
     box.replaceChildren();
@@ -201,6 +214,38 @@
     }
   }
 
+  // Show project names close to their windows while the user rotates the house.
+  // On desktop the existing hover tooltip continues to work unchanged.
+  function updateVisibleWindowNames(visible) {
+    if (!windowNames || leaving || !mobileMedia.matches) {
+      if (windowNames) windowNames.hidden = true;
+      return;
+    }
+
+    const byId = new Map(visible.map((item) => [item.id, item]));
+    const bounds = stage.getBoundingClientRect();
+
+    windowNames.hidden = false;
+    for (const label of mobileLabels) {
+      const item = byId.get(label.dataset.windowProject);
+      label.hidden = !item;
+      if (!item) continue;
+
+      // The badge sits just above its window, not over the glowing panes.
+      label.style.left = `${Math.max(65, Math.min(bounds.width - 65, item.x))}px`;
+      label.style.top = `${Math.max(35, item.y - 37)}px`;
+    }
+  }
+
+  // The badges are functional links as well as labels.
+  mobileLabels.forEach((label) => {
+    label.addEventListener('click', (event) => {
+      if (!house || leaving || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      go(label.dataset.windowProject);
+    });
+  });
+
   function showFallback() {
     canvas.classList.remove('ready');
     $('fallback').hidden = false;
@@ -208,6 +253,7 @@
     $('fallback-hint').hidden = false;
     house = null;
     clearLabel();
+    if (windowNames) windowNames.hidden = true;
 
     if (leaving) {
       const active = links.find((link) => link.classList.contains('is-active'));
@@ -231,6 +277,8 @@
     leaving = true;
     setActive(id);
     clearLabel();
+    stage?.classList.add('is-entering');
+    if (windowNames) windowNames.hidden = true;
     setTransitionCenter();
 
     $('scene-status').textContent = `${text('opening')} ${projects[id].name}`;
@@ -267,6 +315,7 @@
     house = new window.MiFiLHouse(canvas, {
       angle: previous === null ? undefined : Number(previous),
       onSelect: go,
+      onVisibleWindows: updateVisibleWindowNames,
       onHover(id, point) {
         if (leaving) {
           return;

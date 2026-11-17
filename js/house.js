@@ -1,85 +1,208 @@
 /* MiFiL procedural WebGL house. No external dependencies. */
 (() => {
-    'use strict';
-    const TAU = Math.PI * 2, clamp = (x, a, b) => Math.max(a, Math.min(b, x));
-    const add = (a, b) => a.map((x, i) => x + b[i]), sub = (a, b) => a.map((x, i) => x - b[i]), mul = (a, x) => a.map(v => v * x), dot = (a, b) => a.reduce((s, x, i) => s + x * b[i], 0), cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]], norm = a => mul(a, 1 / (Math.hypot(...a) || 1));
-    function mult(a, b) { let o = new Float32Array(16); for (let c = 0; c < 4; c++)for (let r = 0; r < 4; r++)for (let k = 0; k < 4; k++)o[c * 4 + r] += a[k * 4 + r] * b[c * 4 + k]; return o; }
-    function perspective(fov, aspect, near, far) { const f = 1 / Math.tan(fov / 2), d = 1 / (near - far); return new Float32Array([f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) * d, -1, 0, 0, 2 * far * near * d, 0]); }
-    function view(eye, target) { const z = norm(sub(eye, target)), x = norm(cross([0, 1, 0], z)), y = cross(z, x); return new Float32Array([x[0], y[0], z[0], 0, x[1], y[1], z[1], 0, x[2], y[2], z[2], 0, -dot(x, eye), -dot(y, eye), -dot(z, eye), 1]); }
-    function project(m, p) { const v = [...p, 1], q = [0, 0, 0, 0]; for (let r = 0; r < 4; r++)for (let c = 0; c < 4; c++)q[r] += m[c * 4 + r] * v[c]; return [q[0] / q[3], q[1] / q[3], q[2] / q[3]]; }
-    const rgb = h => [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
-    const windows = [{ id: 'livemo', name: 'livEmo', c: [-1.03, 1.48, 1.216], n: [0, 0, 1], u: [1, 0, 0], w: .83, h: 1.00, angle: 0 }, { id: 'our-quest', name: 'Our Quest', c: [1.816, 1.48, .03], n: [1, 0, 0], u: [0, 0, -1], w: 1.0, h: 1.04, angle: Math.PI / 2 }, { id: 'feel', name: 'FEEL', c: [.12, 1.53, -1.216], n: [0, 0, -1], u: [-1, 0, 0], w: .92, h: 1.14, angle: Math.PI }, { id: 'playable-letter', name: 'Playable Letter', c: [-1.816, 1.46, -.05], n: [-1, 0, 0], u: [0, 0, 1], w: 1.03, h: .96, angle: -Math.PI / 2 }];
-    function makeGeometry() {
-        const v = []; const colors = { wall: rgb('626a73'), gable: rgb('5b6570'), roof: rgb('2c4359'), edge: rgb('4b6272'), trim: rgb('2b3943'), stone: rgb('405363'), wood: rgb('4c4543'), glass: rgb('ffd188'), glass2: rgb('fff0c5'), iron: rgb('53463e'), cat: rgb('292d36') }; let id = 0;
-        function tri(a, b, c, col, emit = 0, alpha = 1, n, depth = 0) { n = n || norm(cross(sub(b, a), sub(c, a))); if (!emit && depth < 4 && Math.max(Math.hypot(...sub(a, b)), Math.hypot(...sub(b, c)), Math.hypot(...sub(c, a))) > .44) { const ab = mul(add(a, b), .5), bc = mul(add(b, c), .5), ca = mul(add(c, a), .5); tri(a, ab, ca, col, emit, alpha, n, depth + 1); tri(ab, b, bc, col, emit, alpha, n, depth + 1); tri(ca, bc, c, col, emit, alpha, n, depth + 1); tri(ab, bc, ca, col, emit, alpha, n, depth + 1); return; } for (const p of [a, b, c]) v.push(...p, ...n, ...col, emit, id, alpha); }
-        function quad(a, b, c, d, col, e = 0, alpha = 1, n) { tri(a, b, c, col, e, alpha, n); tri(a, c, d, col, e, alpha, n); }
-        function box(c, s, col, e = 0) { const [x, y, z] = c, [a, b, d] = s.map(x => x / 2), p = (i, j, k) => [x + i * a, y + j * b, z + k * d]; quad(p(-1, -1, 1), p(1, -1, 1), p(1, 1, 1), p(-1, 1, 1), col, e); quad(p(1, -1, -1), p(-1, -1, -1), p(-1, 1, -1), p(1, 1, -1), col, e); quad(p(1, -1, 1), p(1, -1, -1), p(1, 1, -1), p(1, 1, 1), col, e); quad(p(-1, -1, -1), p(-1, -1, 1), p(-1, 1, 1), p(-1, 1, -1), col, e); quad(p(-1, 1, 1), p(1, 1, 1), p(1, 1, -1), p(-1, 1, -1), col, e); quad(p(-1, -1, -1), p(1, -1, -1), p(1, -1, 1), p(-1, -1, 1), col, e); }
-        function ellipsoid(c, s, col, e = 0, rows = 8, segments = 14) { const p = (i, j) => { let t = Math.PI * i / rows, f = TAU * j / segments; return add(c, [s[0] * Math.sin(t) * Math.cos(f), s[1] * Math.cos(t), s[2] * Math.sin(t) * Math.sin(f)]); }; for (let i = 0; i < rows; i++)for (let j = 0; j < segments; j++) { const a = p(i, j), b = p(i + 1, j), d = p(i, j + 1), cc = p(i + 1, j + 1); tri(a, d, b, col, e); tri(b, d, cc, col, e); } }
-        function faceBox(w, x, y, z, sx, sy, sz, col, e = 0) { const p = add(w.c, add(mul(w.u, x), add([0, y, 0], mul(w.n, z)))); box(p, [Math.abs(w.u[0]) * sx + Math.abs(w.n[0]) * sz, sy, Math.abs(w.u[2]) * sx + Math.abs(w.n[2]) * sz], col, e); }
-        // The modest house: base, wooden walls, slightly uneven gable roof.
-        box([0, .06, 0], [3.86, .22, 2.68], colors.stone); box([0, 1.19, 0], [3.6, 2.17, 2.4], colors.wall);
-        for (const z of [-1.2, 1.2]) { const a = [-1.8, 2.275, z], b = [1.8, 2.275, z], c = [-.12, 3.37, z]; if (z > 0) tri(a, b, c, colors.gable); else tri(b, a, c, colors.gable); }
-        const fa = [-2.04, 2.17, 1.46], fb = [-.12, 3.47, 1.44], fc = [2.06, 2.21, 1.49], ba = [-2.04, 2.19, -1.44], bb = [-.05, 3.40, -1.46], bc = [2.06, 2.19, -1.46];
-        quad(fa, fb, bb, ba, colors.roof); quad(fb, fc, bc, bb, colors.roof); // normals corrected via shader abs? ensure outward below
-        const offset = p => add(p, [0, -.12, 0]); quad(fa, offset(fa), offset(fb), fb, colors.edge); quad(fb, offset(fb), offset(fc), fc, colors.edge); quad(bb, offset(bb), offset(ba), ba, colors.edge); quad(bc, offset(bc), offset(bb), bb, colors.edge); quad(ba, offset(ba), offset(fa), fa, colors.edge); quad(fc, offset(fc), offset(bc), bc, colors.edge);
-        // roof seam lines, subtle and sparse
-        for (let k = 1; k < 5; k++) { const t = k / 5; const lp = add(fa, mul(sub(ba, fa), t)), cp = add(fb, mul(sub(bb, fb), t)), rp = add(fc, mul(sub(bc, fc), t)); const q = p => add(p, [0, .012, 0]); const dz = [0, 0, .013]; quad(q(lp), q(cp), add(q(cp), dz), add(q(lp), dz), rgb('3b5264')); quad(q(cp), q(rp), add(q(rp), dz), add(q(cp), dz), rgb('3b5264')); }
-        box([.90, 3.23, -.61], [.38, .91, .48], rgb('485967')); box([.90, 3.72, -.61], [.49, .13, .58], rgb('62717a')); box([.9, 3.79, -.61], [.30, .025, .36], colors.trim);
-        // corners and horizontal join above the foundation
-        for (const x of [-1.77, 1.77]) for (const z of [-1.17, 1.17]) box([x, 1.18, z], [.10, 2.13, .10], rgb('435869'));
-        for (const z of [-1.207, 1.207]) box([0, .26, z], [3.6, .10, .025], rgb('4b6070')); for (const x of [-1.807, 1.807]) box([x, .26, 0], [.025, .1, 2.4], rgb('4b6070'));
-        // Project windows: warm inner panes, deep timber frames, a proper sill.
-        windows.forEach((w, j) => {
-            id = j + 1; faceBox(w, 0, 0, .015, w.w + .16, w.h + .14, .10, colors.trim); faceBox(w, 0, 0, .073, w.w, w.h, .046, colors.wood); for (let i = 0; i < 4; i++) { const x = (i % 2 ? 1 : -1) * w.w * .246, y = (i < 2 ? 1 : -1) * w.h * .25; faceBox(w, x, y, .110, w.w * .414, w.h * .43, .018, i < 2 ? colors.glass2 : colors.glass, 1); }
-            faceBox(w, 0, 0, .13, .046, w.h + .02, .052, colors.iron); faceBox(w, 0, 0, .13, w.w + .02, .046, .052, colors.iron); faceBox(w, 0, -w.h / 2 - .083, .092, w.w + .26, .105, .28, rgb('64717a')); id = 0;
-        });
-        // front door, planks, tiny step
-        box([.65, .86, 1.22], [.78, 1.42, .10], colors.trim); box([.65, .86, 1.277], [.65, 1.31, .04], rgb('58544d')); for (let x = .43; x < .94; x += .145)box([x, .86, 1.303], [.012, 1.25, .008], rgb('45484a')); ellipsoid([.85, .84, 1.34], [.044, .044, .027], rgb('d0a169')); box([.65, .14, 1.39], [.98, .17, .40], colors.stone);
-        // One little cat on the front sill, not a mascot or an interaction.
-        const c = [-.79, 1.13, 1.405]; ellipsoid(c, [.108, .15, .067], colors.cat); ellipsoid(add(c, [.016, .15, .004]), [.083, .087, .065], colors.cat); for (const k of [-1, 1]) { const a = add(c, [.016 + k * .075, .177, .025]), b = add(c, [.016 + k * .012, .196, .025]), d = add(c, [.016 + k * .056, .276, .015]); tri(a, b, d, colors.cat, 0, 1, [0, 0, 1]); tri(b, a, add(d, [0, 0, -.025]), colors.cat, 0, 1, [0, 0, -1]); } for (let i = 0; i < 8; i++) { let t = i / 7 * Math.PI; ellipsoid(add(c, [-.1 - .09 * Math.sin(t), -.055 + .09 * (1 - Math.cos(t)), .035]), [.028, .028, .027], colors.cat, 0, 4, 7); }
-        // Two small torches flanking the door. Flame mesh below is emissive.
-        const torches = [[.08, 1.45, 1.33], [1.28, 1.45, 1.33]]; for (const t of torches) { box(add(t, [0, -.25, 0]), [.09, .40, .09], colors.wood); box(add(t, [0, -.085, 0]), [.16, .10, .16], colors.iron); ellipsoid(add(t, [0, .033, 0]), [.085, .16, .085], rgb('ffb04b'), 2, 8, 12); ellipsoid(add(t, [0, .003, .015]), [.046, .10, .050], rgb('fff0bd'), 2, 7, 10); }
-        return { vertices: new Float32Array(v), torches };
-    }
-    const vertex = `attribute vec3 p;attribute vec3 n;attribute vec3 c;attribute float e;attribute float k;attribute float a;uniform mat4 m;varying vec3 pos;varying vec3 normal;varying vec3 color;varying float em;varying float key;varying float alpha;void main(){pos=p;normal=n;color=c;em=e;key=k;alpha=a;gl_Position=m*vec4(p,1.);}`;
-    const fragment = `precision mediump float;varying vec3 pos;varying vec3 normal;varying vec3 color;varying float em;varying float key;varying float alpha;uniform float selected;uniform float time;void main(){vec3 N=normalize(normal);vec3 cool=vec3(.35,.51,.78);float day=max(dot(N,normalize(vec3(-.5,1.,.7))),0.);vec3 base=color*(cool*.68+vec3(.45,.51,.68)*day);vec3 illumination=vec3(0.);vec3 pts[6];pts[0]=vec3(-1.03,1.48,1.42);pts[1]=vec3(2.02,1.48,.03);pts[2]=vec3(.12,1.53,-1.42);pts[3]=vec3(-2.02,1.46,-.05);pts[4]=vec3(.08,1.5,1.46);pts[5]=vec3(1.28,1.5,1.46);for(int i=0;i<6;i++){vec3 d=pts[i]-pos;float dis=dot(d,d);float l=max(dot(N,normalize(d)),0.)/(1.+dis*2.1);illumination+=vec3(1.0,.58,.23)*l*(i<4?1.52:.94);}base+=illumination*(color*.68+vec3(.12,.10,.05));float chosen=1.-step(.25,abs(key-selected));if(em>.5){base=color*(.99+.09*chosen+.012*sin(time*1.5+key));if(em>1.5)base=color*(.93+.07*sin(time*5.));}gl_FragColor=vec4(clamp(base,0.,1.),alpha);}`;
-    const glowV = `attribute vec3 p;attribute vec2 uv;attribute float power;uniform mat4 m;varying vec2 t;varying float b;void main(){t=uv;b=power;gl_Position=m*vec4(p,1.);}`;
-    const glowF = `precision mediump float;varying vec2 t;varying float b;uniform float mode;void main(){float r=length(t);float s=max(0.,1.-r);float a=exp(-r*r*4.6)*(1.-smoothstep(.72,1.,r))*b;if(mode>.5)gl_FragColor=vec4(.025,.045,.075,a);else gl_FragColor=vec4(1.,.64,.26,a);}`;
-    function program(gl, vs, fs) { function shader(type, source) { const sh = gl.createShader(type); gl.shaderSource(sh, source); gl.compileShader(sh); if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw Error(gl.getShaderInfoLog(sh)); return sh; } const pr = gl.createProgram(); gl.attachShader(pr, shader(gl.VERTEX_SHADER, vs)); gl.attachShader(pr, shader(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw Error(gl.getProgramInfoLog(pr)); return pr; }
-    class House {
-        constructor(canvas, opt) { this.canvas = canvas; this.opt = opt; const gl = this.gl = canvas.getContext('webgl', { alpha: true, antialias: true, premultipliedAlpha: false }); const data = makeGeometry(); this.count = data.vertices.length / 12; this.torches = data.torches; if (gl) { canvas.dataset.renderer = 'webgl'; this.main = program(gl, vertex, fragment); this.glow = program(gl, glowV, glowF); this.buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, this.buf); gl.bufferData(gl.ARRAY_BUFFER, data.vertices, gl.STATIC_DRAW); this.gb = gl.createBuffer(); } else { this.ctx = canvas.getContext('2d'); if (!this.ctx) throw Error('3D rendering unavailable'); this.faces = []; const a = data.vertices; for (let i = 0; i < a.length; i += 36) { const pts = [0, 12, 24].map(k => Array.from(a.slice(i + k, i + k + 3))); this.faces.push({ pts, n: Array.from(a.slice(i + 3, i + 6)), col: Array.from(a.slice(i + 6, i + 9)), em: a[i + 9], key: a[i + 10], center: mul(add(add(pts[0], pts[1]), pts[2]), 1 / 3) }); } canvas.dataset.renderer = 'software-3d'; } this.angle = Number.isFinite(opt.angle) ? opt.angle : .68; this.pitch = .27; this.distance = 8.8; this.target = [0, 1.57, 0]; this.highlight = null; this.motion = null; this.last = 0; this.down = null; this.active = true; this.reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; this.dirty = true; this.addEvents(); this.resize(); this.render(0); this.loop = this.loop.bind(this); this.raf = requestAnimationFrame(this.loop); }
-        addEvents() { const c = this.canvas; this.resizeObserver = new ResizeObserver(() => this.resize()); this.resizeObserver.observe(c); c.addEventListener('webglcontextlost', e => { e.preventDefault(); this.active = false; this.opt.onLost?.(); }); c.addEventListener('pointerdown', e => { if (this.motion?.enter || e.button !== 0) return; this.motion = null; this.down = { id: e.pointerId, x: e.clientX, y: e.clientY, last: e.clientX, moved: false }; }); c.addEventListener('pointermove', e => { if (this.motion?.enter) return; const d = this.down; if (d && d.id === e.pointerId) { if (!d.moved && Math.abs(e.clientX - d.x) > 6 && Math.abs(e.clientX - d.x) > Math.abs(e.clientY - d.y)) { d.moved = true; c.setPointerCapture(e.pointerId); c.classList.add('dragging'); } if (d.moved) { this.angle -= (e.clientX - d.last) * .009; this.dirty = true; this.highlight = null; this.opt.onHover?.(null); } } if (d) d.last = e.clientX; if (!d || !d.moved) { const w = this.hit(e.clientX, e.clientY); this.hover(w); } }); c.addEventListener('pointerup', e => { const d = this.down; if (!d || d.id !== e.pointerId) return; this.down = null; c.classList.remove('dragging'); if (!d.moved && Math.hypot(e.clientX - d.x, e.clientY - d.y) < 10) { const w = this.hit(e.clientX, e.clientY); if (w) this.opt.onSelect?.(w.id); } }); const clear = () => { this.down = null; c.classList.remove('dragging'); this.hover(null); }; c.addEventListener('pointercancel', clear); c.addEventListener('pointerleave', () => { if (!this.down?.moved) { clear(); } }); }
-        resize() { const c = this.canvas, r = c.getBoundingClientRect(), d = Math.min(devicePixelRatio || 1, 1.7); c.width = Math.max(1, Math.round(r.width * d)); c.height = Math.max(1, Math.round(r.height * d)); this.dirty = true; }
-        hover(w) { this.highlight = w?.id || null; this.canvas.classList.toggle('window-hover', !!w); this.opt.onHover?.(this.highlight, w ? this.screen(w.c) : null); this.dirty = true; }
-        setHighlight(id) { this.highlight = id; this.dirty = true; }
-        screen(p) { const q = project(this.matrix, p), r = this.canvas.getBoundingClientRect(); return { x: (q[0] + 1) * r.width / 2, y: (1 - q[1]) * r.height / 2 }; }
-        hit(x, y) { if (!this.matrix) return null; const r = this.canvas.getBoundingClientRect(), p = [x - r.left, y - r.top]; let found = null, dist = Infinity; for (const w of windows) { if (dot(w.n, sub(this.eye, w.c)) < .04) continue; const a = w.w * .66, b = w.h * .64; const corners = [[-a, -b], [a, -b], [a, b], [-a, b]].map(([u, v]) => this.screen(add(w.c, add(mul(w.u, u), [0, v, 0])))); let sign = 0, ok = true; for (let i = 0; i < 4; i++) { const j = (i + 1) % 4, d = (corners[j].x - corners[i].x) * (p[1] - corners[i].y) - (corners[j].y - corners[i].y) * (p[0] - corners[i].x); if (Math.abs(d) < .001) continue; if (sign && Math.sign(d) !== sign) { ok = false; break; } sign = Math.sign(d); } if (ok) { let t = Math.hypot(...sub(w.c, this.eye)); if (t < dist) { found = w; dist = t; } } } return found; }
-        rotate(delta) { if (this.motion?.enter) return; this.hover(null); this.motion = { start: performance.now(), duration: this.reduce ? 1 : 470, from: this.angle, to: this.angle + delta, enter: false }; this.dirty = true; }
-        enter(id, done) { const w = windows.find(w => w.id === id); if (!w) return false; if (this.reduce) { done(); return true; } if (this.motion?.enter) return true; this.down = null; this.canvas.classList.remove('dragging'); this.highlight = id; let d = ((w.angle - this.angle + Math.PI) % TAU + TAU) % TAU - Math.PI; this.motion = { start: performance.now(), duration: 1450, from: this.angle, to: this.angle + d, enter: true, w, done, notified: false }; this.dirty = true; return true; }
-        loop(t) { if (!this.active) return; let changing = false; const m = this.motion; if (m) { const k = clamp((t - m.start) / m.duration, 0, 1); const smooth = x => x * x * (3 - 2 * x); const turn = smooth(clamp(k / (m.enter ? .56 : 1), 0, 1)); this.angle = m.from + (m.to - m.from) * turn; if (m.enter) { const zoom = smooth(clamp((k - .38) / .62, 0, 1)); this.distance = 8.8 - (8.8 - 2.85) * zoom; this.pitch = .27 * (1 - zoom); this.target = [0, 1.57, 0].map((v, i) => v + (m.w.c[i] - v) * zoom); if (k > .77 && !m.notified) { m.notified = true; this.opt.onEnter?.(); } } changing = true; if (k >= 1) { this.motion = null; if (m.enter) m.done(); } } if (this.dirty || changing || (!this.reduce && t - this.last > (this.gl ? 85 : 240))) { this.render(this.reduce ? 0 : t / 1000); this.last = t; this.dirty = false; } this.raf = requestAnimationFrame(this.loop); }
-        bind(pr, b, attributes, stride) { const gl = this.gl; gl.bindBuffer(gl.ARRAY_BUFFER, b); for (const [name, size, offset] of attributes) { const loc = gl.getAttribLocation(pr, name); if (loc < 0) continue; gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, size, gl.FLOAT, false, stride * 4, offset * 4); } }
-        disable(pr, names) { for (const name of names) { const l = this.gl.getAttribLocation(pr, name); if (l >= 0) this.gl.disableVertexAttribArray(l); } }
-        drawGlow(sprites, mode) {
-            const gl = this.gl, p = this.glow; const vertices = []; for (const s of sprites) { const { c, u, v, b } = s; const point = (x, y) => add(c, add(mul(u, x), mul(v, y))); for (const [x, y] of [[-1, -1], [1, -1], [1, 1], [-1, -1], [1, 1], [-1, 1]]) vertices.push(...point(x, y), x, y, b); }
-            if (!vertices.length) return; gl.useProgram(p); gl.bindBuffer(gl.ARRAY_BUFFER, this.gb); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.DYNAMIC_DRAW); this.bind(p, this.gb, [['p', 3, 0], ['uv', 2, 3], ['power', 1, 5]], 6); gl.uniformMatrix4fv(gl.getUniformLocation(p, 'm'), false, this.matrix); gl.uniform1f(gl.getUniformLocation(p, 'mode'), mode); gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 6); this.disable(p, ['p', 'uv', 'power']);
-        }
-        renderSoftware(t) {
-            const c = this.canvas, ctx = this.ctx; if (!c.width || !c.height) return; const aspect = c.width / c.height, dist = this.distance * Math.max(1, 1.06 / aspect); this.eye = add(this.target, [Math.sin(this.angle) * dist * Math.cos(this.pitch), Math.sin(this.pitch) * dist, Math.cos(this.angle) * dist * Math.cos(this.pitch)]); this.matrix = mult(perspective(Math.PI / 4, aspect, .07, 70), view(this.eye, this.target)); const screen = p => { const q = project(this.matrix, p); return [(q[0] + 1) * c.width / 2, (1 - q[1]) * c.height / 2, q[2]] }; ctx.clearRect(0, 0, c.width, c.height); const ground = screen([0, -.04, 0]), size = Math.abs(screen([2, 0, 0])[0] - ground[0]) + Math.abs(screen([0, 0, 2])[0] - ground[0]); ctx.save(); ctx.translate(ground[0], ground[1]); ctx.scale(Math.max(1, size), Math.max(1, size * .24)); let g = ctx.createRadialGradient(0, 0, 0, 0, 0, 1); g.addColorStop(0, 'rgba(2,9,17,.7)'); g.addColorStop(1, 'rgba(2,9,17,0)'); ctx.fillStyle = g; ctx.fillRect(-1, -1, 2, 2); ctx.restore(); for (const w of windows) { const q = screen(add([w.c[0], .005, w.c[2]], mul(w.n, .76))); const rad = Math.max(12, c.height / this.distance * 1.60); ctx.save(); ctx.translate(q[0], q[1]); ctx.scale(1, .32); const pool = ctx.createRadialGradient(0, 0, 0, 0, 0, rad); pool.addColorStop(0, 'rgba(243,169,80,.24)'); pool.addColorStop(.36, 'rgba(231,152,67,.12)'); pool.addColorStop(1, 'rgba(231,152,67,0)'); ctx.fillStyle = pool; ctx.fillRect(-rad, -rad, 2 * rad, 2 * rad); ctx.restore(); } const forward = norm(sub(this.eye, this.target)); const lamp = norm([-.5, 1, .7]); const lightPts = [...windows.map(w => add(w.c, mul(w.n, .22))), ...this.torches.map(q => add(q, [0, .04, .12]))]; const sel = windows.findIndex(w => w.id === this.highlight) + 1;
-            // A real depth buffer for the software renderer (not a flat illustration or painter's sort).
-            const scale = Math.min(1, 800 / Math.max(c.width, c.height)), W = Math.max(1, Math.round(c.width * scale)), H = Math.max(1, Math.round(c.height * scale)); if (!this.offscreen) { this.offscreen = document.createElement('canvas'); this.offctx = this.offscreen.getContext('2d'); } if (this.offscreen.width !== W || this.offscreen.height !== H || !this.image) { this.offscreen.width = W; this.offscreen.height = H; this.image = this.offctx.createImageData(W, H); this.zbuf = new Float32Array(W * H); } const pixels = this.image.data, zbuf = this.zbuf; pixels.fill(0); zbuf.fill(Infinity);
-            const sp = p => { const q = project(this.matrix, p); return [(q[0] + 1) * W / 2, (1 - q[1]) * H / 2, q[2]] };
-            for (const f of this.faces) { if (dot(f.n, sub(this.eye, f.center)) < -.002) continue; const pts = f.pts.map(sp); if (pts.some(p => !Number.isFinite(p[0]) || p[2] > 1.01)) continue; const base = f.col.map((x, i) => x * ([.35, .51, .78][i] * .68 + [.45, .51, .68][i] * Math.max(0, dot(f.n, lamp)))); const shade = p => { if (f.em > .5) { const m = f.em > 1.5 ? .93 + .07 * Math.sin(t * 5) : .99 + (f.key === sel ? .09 : 0) + .012 * Math.sin(t * 1.5 + f.key); return f.col.map(x => clamp(x * m, 0, 1) * 255) } let rgb = base.slice(); for (const [i, point] of lightPts.entries()) { const d = sub(point, p), l = Math.max(0, dot(f.n, norm(d))) / (1 + dot(d, d) * 2.1) * (i < 4 ? 1.52 : .94); rgb = rgb.map((x, j) => x + [1, .58, .23][j] * l * (f.col[j] * .68 + [.12, .10, .05][j])); } return rgb.map(x => clamp(x, 0, 1) * 255) }; const shades = f.em > .5 ? f.pts.map(shade) : (f.shades || (f.shades = f.pts.map(shade))); const [a, q, d] = pts; const den = (q[1] - d[1]) * (a[0] - d[0]) + (d[0] - q[0]) * (a[1] - d[1]); if (Math.abs(den) < .0001) continue; const minx = Math.max(0, Math.floor(Math.min(a[0], q[0], d[0]))), maxx = Math.min(W - 1, Math.ceil(Math.max(a[0], q[0], d[0]))), miny = Math.max(0, Math.floor(Math.min(a[1], q[1], d[1]))), maxy = Math.min(H - 1, Math.ceil(Math.max(a[1], q[1], d[1]))); for (let y = miny; y <= maxy; y++)for (let x = minx; x <= maxx; x++) { const u = ((q[1] - d[1]) * (x + .5 - d[0]) + (d[0] - q[0]) * (y + .5 - d[1])) / den; if (u < -.00001 || u > 1.00001) continue; const v = ((d[1] - a[1]) * (x + .5 - d[0]) + (a[0] - d[0]) * (y + .5 - d[1])) / den; if (v < -.00001 || u + v > 1.00001) continue; const z = u * a[2] + v * q[2] + (1 - u - v) * d[2], i = y * W + x; if (z >= zbuf[i]) continue; zbuf[i] = z; const j = i * 4; for (let h = 0; h < 3; h++)pixels[j + h] = u * shades[0][h] + v * shades[1][h] + (1 - u - v) * shades[2][h]; pixels[j + 3] = 255; } }
-            this.offctx.putImageData(this.image, 0, 0); ctx.drawImage(this.offscreen, 0, 0, c.width, c.height);
-            const glow = (p, r, b) => { const q = screen(p), rad = Math.max(5, r * c.height / this.distance); const gg = ctx.createRadialGradient(q[0], q[1], 0, q[0], q[1], rad); gg.addColorStop(0, 'rgba(255,183,88,' + b + ')'); gg.addColorStop(.24, 'rgba(255,175,76,' + (b * .49) + ')'); gg.addColorStop(.62, 'rgba(255,167,70,' + (b * .12) + ')'); gg.addColorStop(1, 'rgba(255,168,66,0)'); ctx.fillStyle = gg; ctx.fillRect(q[0] - rad, q[1] - rad, rad * 2, rad * 2); }; ctx.globalCompositeOperation = 'screen'; for (const w of windows) { const facing = dot(w.n, norm(sub(this.eye, w.c))); if (facing > .08) glow(add(w.c, mul(w.n, .18)), w.id === this.highlight ? 2.65 : 2.30, (w.id === this.highlight ? .66 : .51) * Math.min(1, facing * 1.7)); } if (dot([0, 0, 1], norm(sub(this.eye, [0, 1.5, 1.3]))) > .12) for (const q of this.torches) glow(q, .92, .32); ctx.globalCompositeOperation = 'source-over';
-        }
+'use strict';
+const TAU=Math.PI*2, clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const add=(a,b)=>a.map((x,i)=>x+b[i]), sub=(a,b)=>a.map((x,i)=>x-b[i]), mul=(a,x)=>a.map(v=>v*x), dot=(a,b)=>a.reduce((s,x,i)=>s+x*b[i],0), cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]], norm=a=>mul(a,1/(Math.hypot(...a)||1));
+function mult(a,b){let o=new Float32Array(16);for(let c=0;c<4;c++)for(let r=0;r<4;r++)for(let k=0;k<4;k++)o[c*4+r]+=a[k*4+r]*b[c*4+k];return o;}
+function perspective(fov,aspect,near,far){const f=1/Math.tan(fov/2),d=1/(near-far);return new Float32Array([f/aspect,0,0,0,0,f,0,0,0,0,(far+near)*d,-1,0,0,2*far*near*d,0]);}
+function view(eye,target){const z=norm(sub(eye,target)),x=norm(cross([0,1,0],z)),y=cross(z,x);return new Float32Array([x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-dot(x,eye),-dot(y,eye),-dot(z,eye),1]);}
+function project(m,p){const v=[...p,1],q=[0,0,0,0];for(let r=0;r<4;r++)for(let c=0;c<4;c++)q[r]+=m[c*4+r]*v[c];return [q[0]/q[3],q[1]/q[3],q[2]/q[3]];}
+const rgb=h=>[0,2,4].map(i=>parseInt(h.slice(i,i+2),16)/255);
+const windows=[{id:'livemo',name:'livEmo',c:[-1.03,1.48,1.216],n:[0,0,1],u:[1,0,0],w:.83,h:1.00,angle:0},{id:'our-quest',name:'Our Quest',c:[1.816,1.48,.03],n:[1,0,0],u:[0,0,-1],w:1.0,h:1.04,angle:Math.PI/2},{id:'feel',name:'FEEL',c:[.12,1.53,-1.216],n:[0,0,-1],u:[-1,0,0],w:.92,h:1.14,angle:Math.PI},{id:'playable-letter',name:'Playable Letter',c:[-1.816,1.46,-.05],n:[-1,0,0],u:[0,0,1],w:1.03,h:.96,angle:-Math.PI/2}];
+function makeGeometry(){// V3 palette: warmer, lived-in surfaces, deep green-slate roof, walnut wood.
+// Modify these hex values when experimenting with the home's character.
+const v=[];
+const colors={
+  wall:rgb('dccbb6'),      // warm weathered plaster
+  gable:rgb('d6c7b4'),     // soft cream-clay under the roof
+  roof:rgb('385154'),      // deep muted petrol, not bright blue
+  edge:rgb('6d6457'),      // exposed timber at the roof edge
+  trim:rgb('614d42'),      // window frames and door posts
+  stone:rgb('88796d'),     // sandy foundation/steps
+  wood:rgb('78513d'),      // aged walnut door and torch mounts
+  glass:rgb('f2c98a'),     // lamplight within the room
+  glass2:rgb('f7e7c4'),    // warm center of window light
+  iron:rgb('70543f'),
+  cat:rgb('292a2b'),
+  curtain:rgb('9a6853'),
+  green:rgb('53684d'),
+  flower:rgb('e7b581'),
+};
+let id=0;
+function tri(a,b,c,col,emit=0,alpha=1,n,depth=0){n=n||norm(cross(sub(b,a),sub(c,a)));if(!emit&&depth<4&&Math.max(Math.hypot(...sub(a,b)),Math.hypot(...sub(b,c)),Math.hypot(...sub(c,a)))>.44){const ab=mul(add(a,b),.5),bc=mul(add(b,c),.5),ca=mul(add(c,a),.5);tri(a,ab,ca,col,emit,alpha,n,depth+1);tri(ab,b,bc,col,emit,alpha,n,depth+1);tri(ca,bc,c,col,emit,alpha,n,depth+1);tri(ab,bc,ca,col,emit,alpha,n,depth+1);return;}for(const p of [a,b,c])v.push(...p,...n,...col,emit,id,alpha);}
+function quad(a,b,c,d,col,e=0,alpha=1,n){tri(a,b,c,col,e,alpha,n);tri(a,c,d,col,e,alpha,n);}
+function box(c,s,col,e=0){const [x,y,z]=c,[a,b,d]=s.map(x=>x/2),p=(i,j,k)=>[x+i*a,y+j*b,z+k*d];quad(p(-1,-1,1),p(1,-1,1),p(1,1,1),p(-1,1,1),col,e);quad(p(1,-1,-1),p(-1,-1,-1),p(-1,1,-1),p(1,1,-1),col,e);quad(p(1,-1,1),p(1,-1,-1),p(1,1,-1),p(1,1,1),col,e);quad(p(-1,-1,-1),p(-1,-1,1),p(-1,1,1),p(-1,1,-1),col,e);quad(p(-1,1,1),p(1,1,1),p(1,1,-1),p(-1,1,-1),col,e);quad(p(-1,-1,-1),p(1,-1,-1),p(1,-1,1),p(-1,-1,1),col,e);}
+function ellipsoid(c,s,col,e=0,rows=8,segments=14){const p=(i,j)=>{let t=Math.PI*i/rows,f=TAU*j/segments;return add(c,[s[0]*Math.sin(t)*Math.cos(f),s[1]*Math.cos(t),s[2]*Math.sin(t)*Math.sin(f)]);};for(let i=0;i<rows;i++)for(let j=0;j<segments;j++){const a=p(i,j),b=p(i+1,j),d=p(i,j+1),cc=p(i+1,j+1);tri(a,d,b,col,e);tri(b,d,cc,col,e);}}
+function faceBox(w,x,y,z,sx,sy,sz,col,e=0){const p=add(w.c,add(mul(w.u,x),add([0,y,0],mul(w.n,z))));box(p,[Math.abs(w.u[0])*sx+Math.abs(w.n[0])*sz,sy,Math.abs(w.u[2])*sx+Math.abs(w.n[2])*sz],col,e);}
+// The modest house: base, wooden walls, slightly uneven gable roof.
+box([0,.06,0],[3.86,.22,2.68],colors.stone);box([0,1.19,0],[3.6,2.17,2.4],colors.wall);
+for(const z of [-1.2,1.2]){const a=[-1.8,2.275,z],b=[1.8,2.275,z],c=[-.12,3.37,z];if(z>0)tri(a,b,c,colors.gable);else tri(b,a,c,colors.gable);}
+const fa=[-2.04,2.17,1.46],fb=[-.12,3.47,1.44],fc=[2.06,2.21,1.49],ba=[-2.04,2.19,-1.44],bb=[-.05,3.40,-1.46],bc=[2.06,2.19,-1.46];
+quad(fa,fb,bb,ba,colors.roof);quad(fb,fc,bc,bb,colors.roof); // normals corrected via shader abs? ensure outward below
+const offset=p=>add(p,[0,-.12,0]);quad(fa,offset(fa),offset(fb),fb,colors.edge);quad(fb,offset(fb),offset(fc),fc,colors.edge);quad(bb,offset(bb),offset(ba),ba,colors.edge);quad(bc,offset(bc),offset(bb),bb,colors.edge);quad(ba,offset(ba),offset(fa),fa,colors.edge);quad(fc,offset(fc),offset(bc),bc,colors.edge);
+// roof seam lines, subtle and sparse
+for(let k=1;k<5;k++){const t=k/5;const lp=add(fa,mul(sub(ba,fa),t)),cp=add(fb,mul(sub(bb,fb),t)),rp=add(fc,mul(sub(bc,fc),t));const q=p=>add(p,[0,.012,0]);const dz=[0,0,.013];quad(q(lp),q(cp),add(q(cp),dz),add(q(lp),dz),rgb('526264'));quad(q(cp),q(rp),add(q(rp),dz),add(q(cp),dz),rgb('526264'));}
+box([.90,3.23,-.61],[.38,.91,.48],rgb('776e61'));box([.90,3.72,-.61],[.49,.13,.58],rgb('a58f75'));box([.9,3.79,-.61],[.30,.025,.36],colors.trim);
+// corners and horizontal join above the foundation
+for(const x of [-1.77,1.77])for(const z of [-1.17,1.17])box([x,1.18,z],[.10,2.13,.10],rgb('826e5c'));
+for(const z of [-1.207,1.207])box([0,.26,z],[3.6,.10,.025],rgb('8b7762'));for(const x of [-1.807,1.807])box([x,.26,0],[.025,.1,2.4],rgb('8b7762'));
+// Project windows: warm inner panes, deep timber frames, a proper sill.
+windows.forEach((w,j)=>{id=j+1;faceBox(w,0,0,.015,w.w+.16,w.h+.14,.10,colors.trim);faceBox(w,0,0,.073,w.w,w.h,.046,colors.wood);for(let i=0;i<4;i++){const x=(i%2?1:-1)*w.w*.246,y=(i<2?1:-1)*w.h*.25;faceBox(w,x,y,.110,w.w*.414,w.h*.43,.018,i<2?colors.glass2:colors.glass,1);}
+// Subtle curtains near the sides, visible only when approaching the house.
+faceBox(w,-w.w*.40,w.h*.24,.142,w.w*.10,w.h*.44,.012,colors.curtain);
+faceBox(w, w.w*.40,w.h*.24,.142,w.w*.10,w.h*.44,.012,colors.curtain);
+faceBox(w,0,0,.155,.047,w.h+.02,.05,colors.iron);
+faceBox(w,0,0,.155,w.w+.02,.047,.05,colors.iron);
+faceBox(w,0,-w.h/2-.083,.092,w.w+.27,.11,.30,rgb('ac9073'));
+id=0;
+});
+// front door, planks, tiny step
+box([.65,.86,1.22],[.80,1.46,.12],colors.trim);
+box([.65,.86,1.295],[.65,1.31,.04],colors.wood);
+for(let x=.43;x<.94;x+=.145)box([x,.86,1.325],[.012,1.25,.008],rgb('5a4035'));
+box([.65,1.64,1.34],[.93,.09,.28],rgb('94745b')); // little wooden awning
+ellipsoid([.85,.84,1.35],[.044,.044,.027],rgb('e3b673'));
+box([.65,.14,1.39],[.98,.17,.40],colors.stone);
+box([.65,.22,1.66],[.68,.028,.32],rgb('866b55')); // modest welcome mat
+// Small potted plant: every visible leaf has a stem connected to the pot.
+// Pot top is y = 0.485; stalks begin inside it rather than floating above it.
+box([1.43,.36,1.39],[.24,.25,.22],rgb('765343'));
+box([1.43,.49,1.39],[.255,.035,.235],rgb('88624d'));
 
-        render(t) {
-            if (!this.gl) { this.renderSoftware(t); return; } const gl = this.gl, c = this.canvas; if (!c.width || !c.height) return; gl.viewport(0, 0, c.width, c.height); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE); const aspect = c.width / c.height, fit = Math.max(1, 1.06 / aspect); const dist = this.distance * fit; this.eye = add(this.target, [Math.sin(this.angle) * dist * Math.cos(this.pitch), Math.sin(this.pitch) * dist, Math.cos(this.angle) * dist * Math.cos(this.pitch)]); this.matrix = mult(perspective(Math.PI / 4, aspect, .07, 70), view(this.eye, this.target));
-            gl.enable(gl.BLEND); gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false); this.drawGlow([{ c: [0, -.055, 0], u: [3.3, 0, 0], v: [0, 0, 2.7], b: .83 }], 1); this.drawGlow(windows.map(w => ({ c: add([w.c[0], -.04, w.c[2]], mul(w.n, .76)), u: mul(w.u, 1.33), v: mul(w.n, 1.46), b: .25 })), 0); gl.depthMask(true); gl.disable(gl.BLEND);
-            const p = this.main; gl.useProgram(p); this.bind(p, this.buf, [['p', 3, 0], ['n', 3, 3], ['c', 3, 6], ['e', 1, 9], ['k', 1, 10], ['a', 1, 11]], 12); gl.uniformMatrix4fv(gl.getUniformLocation(p, 'm'), false, this.matrix); gl.uniform1f(gl.getUniformLocation(p, 'selected'), windows.findIndex(w => w.id === this.highlight) + 1 || -1); gl.uniform1f(gl.getUniformLocation(p, 'time'), t); gl.drawArrays(gl.TRIANGLES, 0, this.count); this.disable(p, ['p', 'n', 'c', 'e', 'k', 'a']);
-            // Camera-facing translucent light, depth-tested so that back windows stay hidden.
-            const forward = norm(sub(this.eye, this.target)), right = norm(cross([0, 1, 0], forward)), up = norm(cross(forward, right)); const sprites = []; for (const w of windows) { const facing = dot(w.n, norm(sub(this.eye, w.c))); if (facing > .06) { const sel = w.id === this.highlight; sprites.push({ c: add(add(w.c, mul(w.n, .19)), mul(forward, .05)), u: mul(right, sel ? 1.62 : 1.40), v: mul(up, sel ? 1.72 : 1.52), b: (sel ? .58 : .43) * Math.min(1, facing * 1.7) }); } } if (dot([0, 0, 1], norm(sub(this.eye, [0, 1.5, 1.3]))) > .12) for (const q of this.torches) sprites.push({ c: add(q, [0, .04, .12]), u: mul(right, .76), v: mul(up, .90), b: .32 + Math.sin(t * 5 + q[0]) * .02 }); gl.enable(gl.BLEND); gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE, gl.ONE, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false); this.drawGlow(sprites, 0); gl.depthMask(true); gl.disable(gl.BLEND);
-        }
+const plantBase=[1.43,.485,1.515];
+const stemColor=rgb('526449');
+const leafColor=rgb('53684d');
+function plantStem(from,to,width=.012){
+  const dx=to[0]-from[0],dy=to[1]-from[1];
+  const len=Math.hypot(dx,dy)||1;
+  const nx=-dy/len*width*.5,ny=dx/len*width*.5;
+  quad(
+    [from[0]+nx,from[1]+ny,from[2]],
+    [from[0]-nx,from[1]-ny,from[2]],
+    [to[0]-nx,to[1]-ny,to[2]],
+    [to[0]+nx,to[1]+ny,to[2]],
+    stemColor
+  );
+}
+const leaves=[
+  {c:[1.35,.64,1.535],s:[.052,.092,.025]},
+  {c:[1.51,.66,1.535],s:[.053,.097,.025]},
+  {c:[1.43,.76,1.538],s:[.045,.10,.025]},
+];
+for(const leaf of leaves){
+  plantStem(plantBase,[leaf.c[0],leaf.c[1]-.045,leaf.c[2]],.013);
+  ellipsoid(leaf.c,leaf.s,leafColor,0,5,9);
+}
+// One little cat on the front sill, not a mascot or an interaction.
+const c=[-.79,1.13,1.405];ellipsoid(c,[.108,.15,.067],colors.cat);ellipsoid(add(c,[.016,.15,.004]),[.083,.087,.065],colors.cat);for(const k of [-1,1]){const a=add(c,[.016+k*.075,.177,.025]),b=add(c,[.016+k*.012,.196,.025]),d=add(c,[.016+k*.056,.276,.015]);tri(a,b,d,colors.cat,0,1,[0,0,1]);tri(b,a,add(d,[0,0,-.025]),colors.cat,0,1,[0,0,-1]);}for(let i=0;i<8;i++){let t=i/7*Math.PI;ellipsoid(add(c,[-.1-.09*Math.sin(t),-.055+.09*(1-Math.cos(t)),.035]),[.028,.028,.027],colors.cat,0,4,7);}
+// A tiny reflection in the cat's eyes (subtle enough not to become a mascot).
+ellipsoid([-.823,1.286,1.474],[.009,.013,.006],rgb('e1b67e'),0,4,6);
+ellipsoid([-.779,1.286,1.474],[.009,.013,.006],rgb('e1b67e'),0,4,6);
+// Two small torches flanking the door. Flame mesh below is emissive.
+const torches=[[.08,1.45,1.33],[1.28,1.45,1.33]];for(const t of torches){box(add(t,[0,-.25,0]),[.09,.40,.09],colors.wood);box(add(t,[0,-.085,0]),[.16,.10,.16],colors.iron);ellipsoid(add(t,[0,.033,0]),[.072,.14,.072],rgb('efbb70'),2,8,12);ellipsoid(add(t,[0,.003,.015]),[.040,.086,.044],rgb('fff1d7'),2,7,10);}
+return {vertices:new Float32Array(v),torches};}
+const vertex=`attribute vec3 p;attribute vec3 n;attribute vec3 c;attribute float e;attribute float k;attribute float a;uniform mat4 m;varying vec3 pos;varying vec3 normal;varying vec3 color;varying float em;varying float key;varying float alpha;void main(){pos=p;normal=n;color=c;em=e;key=k;alpha=a;gl_Position=m*vec4(p,1.);}`;
+const fragment=`
+precision mediump float;
+varying vec3 pos;
+varying vec3 normal;
+varying vec3 color;
+varying float em;
+varying float key;
+varying float alpha;
+uniform float selected;
+uniform float time;
+
+void main() {
+  vec3 N = normalize(normal);
+  float daylight = max(dot(N, normalize(vec3(-.5, 1., .7))), 0.);
+
+  // A gentler base night light: the house stays readable without looking sprayed with yellow light.
+  vec3 ambient = vec3(.58, .585, .60);
+  vec3 base = color * (ambient + vec3(.18, .19, .19) * daylight);
+
+  // Four windows and two torches. Their influence is intentionally restrained.
+  vec3 lights[6];
+  lights[0] = vec3(-1.03, 1.48, 1.42);
+  lights[1] = vec3(2.02, 1.48, .03);
+  lights[2] = vec3(.12, 1.53, -1.42);
+  lights[3] = vec3(-2.02, 1.46, -.05);
+  lights[4] = vec3(.08, 1.50, 1.46);
+  lights[5] = vec3(1.28, 1.50, 1.46);
+
+  vec3 illumination = vec3(0.);
+  for (int i = 0; i < 6; i++) {
+    vec3 direction = lights[i] - pos;
+    float distance2 = dot(direction, direction);
+    float facing = max(dot(N, normalize(direction)), 0.);
+    float intensity = facing / (1.2 + distance2 * 1.32);
+    illumination += vec3(1.0, .72, .50) * intensity * (i < 4 ? 1.00 : 0.72);
+  }
+
+  base += illumination * (color * .20 + vec3(.10, .09, .07));
+
+  // Near-imperceptible material grain. It is intentionally NOT a noisy glow.
+  float plasterGrain = sin(pos.x * 29.4 + pos.y * 36.8 + pos.z * 19.3)
+                     * sin(pos.x * 45.2 - pos.y * 27.6 + pos.z * 33.9);
+  base *= 1.0 + plasterGrain * .014;
+
+  float chosen = 1. - step(.25, abs(key - selected));
+  if (em > .5) {
+    base = color * (0.985 + .045 * chosen + .010 * sin(time * 1.25 + key));
+    if (em > 1.5) {
+      base = color * (.93 + .035 * sin(time * 3.6));
     }
-    window.MiFiLHouse = House;
+  }
+
+  gl_FragColor = vec4(clamp(base, 0., 1.), alpha);
+}`;
+const glowV=`attribute vec3 p;attribute vec2 uv;attribute float power;uniform mat4 m;varying vec2 t;varying float b;void main(){t=uv;b=power;gl_Position=m*vec4(p,1.);}`;
+const glowF=`precision mediump float;varying vec2 t;varying float b;uniform float mode;void main(){float r=length(t);float a=exp(-r*r*5.8)*(1.-smoothstep(.58,1.,r))*b;if(mode>.5)gl_FragColor=vec4(.025,.045,.075,a);else gl_FragColor=vec4(.98,.84,.68,a);}`;
+function program(gl,vs,fs){function shader(type,source){const sh=gl.createShader(type);gl.shaderSource(sh,source);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(sh));return sh;}const pr=gl.createProgram();gl.attachShader(pr,shader(gl.VERTEX_SHADER,vs));gl.attachShader(pr,shader(gl.FRAGMENT_SHADER,fs));gl.linkProgram(pr);if(!gl.getProgramParameter(pr,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(pr));return pr;}
+class House{
+ constructor(canvas,opt){this.canvas=canvas;this.opt=opt;const gl=this.gl=canvas.getContext('webgl',{alpha:true,antialias:true,premultipliedAlpha:false});const data=makeGeometry();this.count=data.vertices.length/12;this.torches=data.torches;if(gl){canvas.dataset.renderer='webgl';this.main=program(gl,vertex,fragment);this.glow=program(gl,glowV,glowF);this.buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,this.buf);gl.bufferData(gl.ARRAY_BUFFER,data.vertices,gl.STATIC_DRAW);this.gb=gl.createBuffer();}else{this.ctx=canvas.getContext('2d');if(!this.ctx)throw Error('3D rendering unavailable');this.faces=[];const a=data.vertices;for(let i=0;i<a.length;i+=36){const pts=[0,12,24].map(k=>Array.from(a.slice(i+k,i+k+3)));this.faces.push({pts,n:Array.from(a.slice(i+3,i+6)),col:Array.from(a.slice(i+6,i+9)),em:a[i+9],key:a[i+10],center:mul(add(add(pts[0],pts[1]),pts[2]),1/3)});}canvas.dataset.renderer='software-3d';}this.angle=Number.isFinite(opt.angle)?opt.angle:.68;this.pitch=.27;this.distance=7.75;this.target=[0,1.57,0];this.highlight=null;this.motion=null;this.last=0;this.down=null;this.active=true;this.reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;this.dirty=true;this.addEvents();this.resize();this.render(0);this.loop=this.loop.bind(this);this.raf=requestAnimationFrame(this.loop);}
+ addEvents(){const c=this.canvas;this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(c);c.addEventListener('webglcontextlost',e=>{e.preventDefault();this.active=false;this.opt.onLost?.();});c.addEventListener('pointerdown',e=>{if(this.motion?.enter||e.button!==0)return;this.motion=null;this.down={id:e.pointerId,x:e.clientX,y:e.clientY,last:e.clientX,moved:false};});c.addEventListener('pointermove',e=>{if(this.motion?.enter)return;const d=this.down;if(d&&d.id===e.pointerId){if(!d.moved&&Math.abs(e.clientX-d.x)>6&&Math.abs(e.clientX-d.x)>Math.abs(e.clientY-d.y)){d.moved=true;c.setPointerCapture(e.pointerId);c.classList.add('dragging');}if(d.moved){this.angle-=(e.clientX-d.last)*.009;this.dirty=true;this.highlight=null;this.opt.onHover?.(null);}}if(d)d.last=e.clientX;if(!d||!d.moved){const w=this.hit(e.clientX,e.clientY);this.hover(w);}});c.addEventListener('pointerup',e=>{const d=this.down;if(!d||d.id!==e.pointerId)return;this.down=null;c.classList.remove('dragging');if(!d.moved&&Math.hypot(e.clientX-d.x,e.clientY-d.y)<10){const w=this.hit(e.clientX,e.clientY);if(w)this.opt.onSelect?.(w.id);}});const clear=()=>{this.down=null;c.classList.remove('dragging');this.hover(null);};c.addEventListener('pointercancel',clear);c.addEventListener('pointerleave',()=>{if(!this.down?.moved){clear();}});}
+ resize(){const c=this.canvas,r=c.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,1.7);c.width=Math.max(1,Math.round(r.width*d));c.height=Math.max(1,Math.round(r.height*d));this.dirty=true;}
+ hover(w){this.highlight=w?.id||null;this.canvas.classList.toggle('window-hover',!!w);this.opt.onHover?.(this.highlight,w?this.screen(w.c):null);this.dirty=true;}
+ setHighlight(id){this.highlight=id;this.dirty=true;}
+ screen(p){const q=project(this.matrix,p),r=this.canvas.getBoundingClientRect();return {x:(q[0]+1)*r.width/2,y:(1-q[1])*r.height/2};}
+
+ // Find the front-facing project windows on the current 3D house orientation.
+ // Each label is positioned using the same perspective projection as the house.
+ visibleWindows(){
+   if(!this.matrix||!this.eye)return [];
+   const rect=this.canvas.getBoundingClientRect();
+   return windows.flatMap(w=>{
+     const facing=dot(w.n,norm(sub(this.eye,w.c)));
+     if(facing<.26)return [];
+     const point=this.screen(w.c);
+     if(!Number.isFinite(point.x)||!Number.isFinite(point.y))return [];
+     if(point.x<0||point.x>rect.width||point.y<0||point.y>rect.height)return [];
+     return [{id:w.id,x:point.x,y:point.y,facing}];
+   });
+ }
+ hit(x,y){if(!this.matrix)return null;const r=this.canvas.getBoundingClientRect(),p=[x-r.left,y-r.top];let found=null,dist=Infinity;for(const w of windows){if(dot(w.n,sub(this.eye,w.c))<.04)continue;const a=w.w*.66,b=w.h*.64;const corners=[[-a,-b],[a,-b],[a,b],[-a,b]].map(([u,v])=>this.screen(add(w.c,add(mul(w.u,u),[0,v,0]))));let sign=0,ok=true;for(let i=0;i<4;i++){const j=(i+1)%4,d=(corners[j].x-corners[i].x)*(p[1]-corners[i].y)-(corners[j].y-corners[i].y)*(p[0]-corners[i].x);if(Math.abs(d)<.001)continue;if(sign&&Math.sign(d)!==sign){ok=false;break;}sign=Math.sign(d);}if(ok){let t=Math.hypot(...sub(w.c,this.eye));if(t<dist){found=w;dist=t;}}}return found;}
+ rotate(delta){if(this.motion?.enter)return;this.hover(null);this.motion={start:performance.now(),duration:this.reduce?1:470,from:this.angle,to:this.angle+delta,enter:false};this.dirty=true;}
+ enter(id,done){const w=windows.find(w=>w.id===id);if(!w)return false;if(this.reduce){done();return true;}if(this.motion?.enter)return true;this.down=null;this.canvas.classList.remove('dragging');this.highlight=id;let d=((w.angle-this.angle+Math.PI)%TAU+TAU)%TAU-Math.PI;this.motion={start:performance.now(),duration:1450,from:this.angle,to:this.angle+d,enter:true,w,done,notified:false};this.dirty=true;return true;}
+ loop(t){if(!this.active)return;let changing=false;const m=this.motion;if(m){const k=clamp((t-m.start)/m.duration,0,1);const smooth=x=>x*x*(3-2*x);const turn=smooth(clamp(k/(m.enter?.56:1),0,1));this.angle=m.from+(m.to-m.from)*turn;if(m.enter){const zoom=smooth(clamp((k-.38)/.62,0,1));this.distance=7.75-(7.75-2.85)*zoom;this.pitch=.27*(1-zoom);this.target=[0,1.57,0].map((v,i)=>v+(m.w.c[i]-v)*zoom);if(k>.77&&!m.notified){m.notified=true;this.opt.onEnter?.();}}changing=true;if(k>=1){this.motion=null;if(m.enter)m.done();}}if(this.dirty||changing||(!this.reduce&&t-this.last>(this.gl?85:240))){this.render(this.reduce?0:t/1000);this.opt.onVisibleWindows?.(this.visibleWindows());this.last=t;this.dirty=false;}this.raf=requestAnimationFrame(this.loop);}
+ bind(pr,b,attributes,stride){const gl=this.gl;gl.bindBuffer(gl.ARRAY_BUFFER,b);for(const [name,size,offset] of attributes){const loc=gl.getAttribLocation(pr,name);if(loc<0)continue;gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,stride*4,offset*4);}}
+ disable(pr,names){for(const name of names){const l=this.gl.getAttribLocation(pr,name);if(l>=0)this.gl.disableVertexAttribArray(l);}}
+ drawGlow(sprites,mode){const gl=this.gl,p=this.glow;const vertices=[];for(const s of sprites){const {c,u,v,b}=s;const point=(x,y)=>add(c,add(mul(u,x),mul(v,y)));for(const [x,y] of [[-1,-1],[1,-1],[1,1],[-1,-1],[1,1],[-1,1]])vertices.push(...point(x,y),x,y,b);}
+ if(!vertices.length)return;gl.useProgram(p);gl.bindBuffer(gl.ARRAY_BUFFER,this.gb);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.DYNAMIC_DRAW);this.bind(p,this.gb,[['p',3,0],['uv',2,3],['power',1,5]],6);gl.uniformMatrix4fv(gl.getUniformLocation(p,'m'),false,this.matrix);gl.uniform1f(gl.getUniformLocation(p,'mode'),mode);gl.drawArrays(gl.TRIANGLES,0,vertices.length/6);this.disable(p,['p','uv','power']);}
+ renderSoftware(t){const c=this.canvas,ctx=this.ctx;if(!c.width||!c.height)return;const aspect=c.width/c.height,dist=this.distance*Math.max(1,1.06/aspect);this.eye=add(this.target,[Math.sin(this.angle)*dist*Math.cos(this.pitch),Math.sin(this.pitch)*dist,Math.cos(this.angle)*dist*Math.cos(this.pitch)]);this.matrix=mult(perspective(Math.PI/4,aspect,.07,70),view(this.eye,this.target));const screen=p=>{const q=project(this.matrix,p);return [(q[0]+1)*c.width/2,(1-q[1])*c.height/2,q[2]]};ctx.clearRect(0,0,c.width,c.height);const ground=screen([0,-.04,0]),size=Math.abs(screen([2,0,0])[0]-ground[0])+Math.abs(screen([0,0,2])[0]-ground[0]);ctx.save();ctx.translate(ground[0],ground[1]);ctx.scale(Math.max(1,size),Math.max(1,size*.24));let g=ctx.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,'rgba(2,9,17,.7)');g.addColorStop(1,'rgba(2,9,17,0)');ctx.fillStyle=g;ctx.fillRect(-1,-1,2,2);ctx.restore();for(const w of windows){const q=screen(add([w.c[0],.005,w.c[2]],mul(w.n,.76)));const rad=Math.max(12,c.height/this.distance*1.60);ctx.save();ctx.translate(q[0],q[1]);ctx.scale(1,.32);const pool=ctx.createRadialGradient(0,0,0,0,0,rad);pool.addColorStop(0,'rgba(244,202,145,.12)');pool.addColorStop(.42,'rgba(230,186,124,.06)');pool.addColorStop(1,'rgba(231,152,67,0)');ctx.fillStyle=pool;ctx.fillRect(-rad,-rad,2*rad,2*rad);ctx.restore();}const forward=norm(sub(this.eye,this.target));const lamp=norm([-.5,1,.7]);const lightPts=[...windows.map(w=>add(w.c,mul(w.n,.22))),...this.torches.map(q=>add(q,[0,.04,.12]))];const sel=windows.findIndex(w=>w.id===this.highlight)+1;
+ // A real depth buffer for the software renderer (not a flat illustration or painter's sort).
+ const scale=Math.min(1,800/Math.max(c.width,c.height)),W=Math.max(1,Math.round(c.width*scale)),H=Math.max(1,Math.round(c.height*scale));if(!this.offscreen){this.offscreen=document.createElement('canvas');this.offctx=this.offscreen.getContext('2d');}if(this.offscreen.width!==W||this.offscreen.height!==H||!this.image){this.offscreen.width=W;this.offscreen.height=H;this.image=this.offctx.createImageData(W,H);this.zbuf=new Float32Array(W*H);}const pixels=this.image.data,zbuf=this.zbuf;pixels.fill(0);zbuf.fill(Infinity);
+ const sp=p=>{const q=project(this.matrix,p);return [(q[0]+1)*W/2,(1-q[1])*H/2,q[2]]};
+ for(const f of this.faces){if(dot(f.n,sub(this.eye,f.center))<-.002)continue;const pts=f.pts.map(sp);if(pts.some(p=>!Number.isFinite(p[0])||p[2]>1.01))continue;const base=f.col.map((x,i)=>x*([.56,.57,.60][i]+[.22,.23,.23][i]*Math.max(0,dot(f.n,lamp))));const shade=p=>{if(f.em>.5){const m=f.em>1.5?.93+.07*Math.sin(t*5):.99+(f.key===sel?.09:0)+.012*Math.sin(t*1.5+f.key);return f.col.map(x=>clamp(x*m,0,1)*255)}let rgb=base.slice();for(const [i,point] of lightPts.entries()){const d=sub(point,p),l=Math.max(0,dot(f.n,norm(d)))/(1+dot(d,d)*1.05)*(i<4?1.00:0.72);rgb=rgb.map((x,j)=>x+[1,.72,.50][j]*l*(f.col[j]*.20+[.10,.09,.07][j]));}return rgb.map(x=>clamp(x,0,1)*255)};const shades=f.em>.5?f.pts.map(shade):(f.shades||(f.shades=f.pts.map(shade)));const [a,q,d]=pts;const den=(q[1]-d[1])*(a[0]-d[0])+(d[0]-q[0])*(a[1]-d[1]);if(Math.abs(den)<.0001)continue;const minx=Math.max(0,Math.floor(Math.min(a[0],q[0],d[0]))),maxx=Math.min(W-1,Math.ceil(Math.max(a[0],q[0],d[0]))),miny=Math.max(0,Math.floor(Math.min(a[1],q[1],d[1]))),maxy=Math.min(H-1,Math.ceil(Math.max(a[1],q[1],d[1])));for(let y=miny;y<=maxy;y++)for(let x=minx;x<=maxx;x++){const u=((q[1]-d[1])*(x+.5-d[0])+(d[0]-q[0])*(y+.5-d[1]))/den;if(u<-.00001||u>1.00001)continue;const v=((d[1]-a[1])*(x+.5-d[0])+(a[0]-d[0])*(y+.5-d[1]))/den;if(v<-.00001||u+v>1.00001)continue;const z=u*a[2]+v*q[2]+(1-u-v)*d[2],i=y*W+x;if(z>=zbuf[i])continue;zbuf[i]=z;const j=i*4;for(let h=0;h<3;h++)pixels[j+h]=u*shades[0][h]+v*shades[1][h]+(1-u-v)*shades[2][h];pixels[j+3]=255;}}
+ this.offctx.putImageData(this.image,0,0);ctx.drawImage(this.offscreen,0,0,c.width,c.height);
+ const glow=(p,r,b)=>{const q=screen(p),rad=Math.max(5,r*c.height/this.distance);const gg=ctx.createRadialGradient(q[0],q[1],0,q[0],q[1],rad);gg.addColorStop(0,'rgba(255,232,194,'+b+')');gg.addColorStop(.26,'rgba(245,208,154,'+(b*.42)+')');gg.addColorStop(.60,'rgba(231,183,121,'+(b*.10)+')');gg.addColorStop(1,'rgba(255,168,66,0)');ctx.fillStyle=gg;ctx.fillRect(q[0]-rad,q[1]-rad,rad*2,rad*2);};ctx.globalCompositeOperation='screen';for(const w of windows){const facing=dot(w.n,norm(sub(this.eye,w.c)));if(facing>.08)glow(add(w.c,mul(w.n,.18)),w.id===this.highlight?1.58:1.34,(w.id===this.highlight?.28:.20)*Math.min(1,facing*1.7));}if(dot([0,0,1],norm(sub(this.eye,[0,1.5,1.3])))>.12)for(const q of this.torches)glow(q,1.05,.40);ctx.globalCompositeOperation='source-over';}
+
+ render(t){if(!this.gl){this.renderSoftware(t);return;}const gl=this.gl,c=this.canvas;if(!c.width||!c.height)return;gl.viewport(0,0,c.width,c.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.enable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);const aspect=c.width/c.height, fit=Math.max(1,1.06/aspect);const dist=this.distance*fit;this.eye=add(this.target,[Math.sin(this.angle)*dist*Math.cos(this.pitch),Math.sin(this.pitch)*dist,Math.cos(this.angle)*dist*Math.cos(this.pitch)]);this.matrix=mult(perspective(Math.PI/4,aspect,.07,70),view(this.eye,this.target));
+ gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);this.drawGlow([{c:[0,-.055,0],u:[3.1,0,0],v:[0,0,2.5],b:.82}],1);this.drawGlow(windows.map(w=>({c:add([w.c[0],-.04,w.c[2]],mul(w.n,.72)),u:mul(w.u,1.20),v:mul(w.n,1.22),b:.11})),0);gl.depthMask(true);gl.disable(gl.BLEND);
+ const p=this.main;gl.useProgram(p);this.bind(p,this.buf,[['p',3,0],['n',3,3],['c',3,6],['e',1,9],['k',1,10],['a',1,11]],12);gl.uniformMatrix4fv(gl.getUniformLocation(p,'m'),false,this.matrix);gl.uniform1f(gl.getUniformLocation(p,'selected'),windows.findIndex(w=>w.id===this.highlight)+1||-1);gl.uniform1f(gl.getUniformLocation(p,'time'),t);gl.drawArrays(gl.TRIANGLES,0,this.count);this.disable(p,['p','n','c','e','k','a']);
+ // Camera-facing translucent light, depth-tested so that back windows stay hidden.
+ const forward=norm(sub(this.eye,this.target)),right=norm(cross([0,1,0],forward)),up=norm(cross(forward,right));const sprites=[];for(const w of windows){const facing=dot(w.n,norm(sub(this.eye,w.c)));if(facing>.06){const sel=w.id===this.highlight;sprites.push({c:add(add(w.c,mul(w.n,.18)),mul(forward,.04)),u:mul(right,sel?1.18:1.05),v:mul(up,sel?1.28:1.14),b:(sel?.24:.18)*Math.min(1,facing*1.5)});}}if(dot([0,0,1],norm(sub(this.eye,[0,1.5,1.3])))>.12)for(const q of this.torches)sprites.push({c:add(q,[0,.04,.12]),u:mul(right,.62),v:mul(up,.82),b:.16+Math.sin(t*5+q[0])*.01});gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);this.drawGlow(sprites,0);gl.depthMask(true);gl.disable(gl.BLEND);
+ }
+}
+window.MiFiLHouse=House;
 })();

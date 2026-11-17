@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 202" role="img" aria-labelledby="t d">
+  <title id="t">MiFiL</title>
+  <desc id="d">Неровная крыша и тёплое окно над надписью MiFiL; обе буквы i оформлены как факелы.</desc>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 107 C63 97 118 44 160 18 C204 49 258 99 299 105" stroke="#CA924F" stroke-width="5.2"/>
+    <path d="M21 108 C71 96 123 58 160 23" stroke="#E9B86F" stroke-width="1.45" opacity=".9"/>
+  </g>
+  <path d="M228 54 V37 H246 V64" fill="#CA924F"/>
+  <path d="M225 36 H248" stroke="#E9B86F" stroke-width="5" stroke-linecap="round"/>
+  <g fill="#D9A04E">
+    <rect x="144" y="69" width="13" height="14" rx="1.5"/>
+    <rect x="163" y="69" width="13" height="14" rx="1.5"/>
+    <rect x="144" y="88" width="13" height="14" rx="1.5"/>
+    <rect x="163" y="88" width="13" height="14" rx="1.5"/>
+  </g>
+  <g stroke="#173945" stroke-width="7.4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M48 180 V136 L73 164 L98 136 V180"/>
+    <path d="M160 180 V136 H195 M160 156 H189"/>
+    <path d="M257 136 V180 H292"/>
+  </g>
+  <g fill="#173945">
+    <path d="M124 158 Q131 154 138 158 L136.7 181 H125.2 Z"/>
+    <path d="M219 158 Q226 154 233 158 L231.7 181 H220.2 Z"/>
+  </g>
+  <g fill="#D9A04E">
+    <path d="M131 121 C133 132 143 138 136 152 C130 161 117 154 119 144 C120 137 126 132 131 121 Z"/>
+    <path d="M226 121 C228 132 238 138 231 152 C225 161 212 154 214 144 C215 137 221 132 226 121 Z"/>
+  </g>
+  <g fill="#FFF0CE">
+    <path d="M131 137 C128 144 126 148 131 152 C136 148 135 142 131 137 Z"/>
+    <path d="M226 137 C223 144 221 148 226 152 C231 148 230 142 226 137 Z"/>
+  </g>
+</svg>

@@ -1,0 +1,348 @@
+/*
+  MiFiL v5 — Watercolor Home
+  ==========================
+  Artistic direction: warm watercolor paper, a dark ink-blue night behind the
+  house, and natural amber light. Edit this file to refine the home page without
+  modifying the working 3D engine, translations or project pages.
+
+  Assets:
+    sand-paper.webp               — subtle warm paper grain
+    night-watercolor.webp         — large desktop night watercolor, transparent
+    night-watercolor-mobile.webp  — mobile framing of the same night watercolor
+*/
+
+.home-body {
+  --ivory: #1b3a46;
+  --muted: #516c76;
+  --amber: #ab7647;
+  --line: rgba(86, 77, 67, 0.23);
+  color: #173744;
+  background: #f7dcba url('sand-paper.webp') center center / cover fixed;
+}
+
+.home-body::before,
+.home-body::after {
+  display: none;
+}
+
+/* The watercolor is part of the setting, not a flat patch glued to the house. */
+.home-body .site-shell {
+  isolation: isolate;
+  width: min(100%, 1586px);
+  padding-inline: clamp(24px, 6.1vw, 94px);
+}
+
+.home-body .site-shell::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  background: url('night-watercolor.webp') center center / 100% 100% no-repeat;
+}
+
+/* Top bar */
+.home-body .site-header {
+  min-height: 122px;
+}
+
+.home-body .brand img {
+  width: 140px;
+}
+
+.home-body .header-link {
+  color: #1d4554;
+  font-size: 13px;
+  letter-spacing: .01em;
+}
+
+/* Left column: simple, calm and obviously clickable. */
+.home-body .home {
+  grid-template-columns: minmax(230px, .72fr) minmax(0, 1.68fr);
+  gap: clamp(26px, 5vw, 88px);
+  min-height: min(625px, 69vh);
+  padding-top: 0;
+  padding-bottom: 6px;
+}
+
+.home-body .worlds {
+  transform: translateY(-40px);
+}
+
+.home-body .worlds-inner {
+  max-width: 310px;
+}
+
+.home-body .worlds h1 {
+  margin-bottom: 24px;
+  font-size: clamp(41px, 4.2vw, 58px);
+  font-weight: 340;
+  letter-spacing: -.047em;
+  color: #173b48;
+}
+
+.home-body .project-list a {
+  min-height: 58px;
+  padding-block: 15px;
+  color: #1e4653;
+  border-color: rgba(90, 83, 73, .20);
+  font-size: clamp(17px, 1.62vw, 22px);
+  font-weight: 410;
+}
+
+.home-body .project-list a:hover,
+.home-body .project-list a:focus-visible,
+.home-body .project-list a.is-active {
+  color: #9f673d;
+  border-color: #bf906a;
+}
+
+.home-body .arrow {
+  color: #8e715b;
+  font-size: 17px;
+}
+
+/* The house remains a true interactive 3D scene. No static house overlay. */
+.home-body .scene {
+  transform: translateY(-25px);
+}
+
+.home-body .scene-stage {
+  height: clamp(340px, 47vw, 575px);
+}
+
+/* Disable the old CSS splatter/blur that caused the artificial look. */
+.home-body .scene-stage::before,
+.home-body .scene-stage::after,
+.home-body .scene-halo {
+  display: none;
+}
+
+.home-body .scene-controls {
+  margin-top: -8px;
+  gap: 16px;
+  color: #244753;
+}
+
+.home-body .rotate {
+  width: 47px;
+  height: 47px;
+  background: rgba(251, 230, 199, .27);
+  border-color: rgba(110, 79, 56, .38);
+  color: #2b4b59;
+}
+
+.home-body .rotate:hover {
+  background: rgba(255, 220, 166, .58);
+  color: #98653b;
+}
+
+.home-body .scene-hint {
+  color: #254653;
+  font-size: 12px;
+}
+
+/* Footer is intentionally low contrast, like the reference drawing. */
+.home-body .site-footer {
+  min-height: 140px;
+  padding-top: 30px;
+  padding-bottom: 54px;
+  align-content: start;
+  color: #244956;
+  border-top: 1px solid rgba(116, 87, 67, .20);
+}
+
+.home-body .footer-links a,
+.home-body .language select {
+  color: #244956;
+}
+
+.home-body .footer-links a:hover {
+  color: #a16a41;
+}
+
+/* Tablet: pull the painting inward without losing its organic silhouette. */
+@media (min-width: 761px) and (max-width: 1050px) {
+  .home-body .site-shell::before {
+    background-size: 115% 100%;
+    background-position: 52% 50%;
+  }
+
+  .home-body .home {
+    grid-template-columns: minmax(205px, .66fr) minmax(0, 1.55fr);
+    gap: 22px;
+  }
+
+  .home-body .worlds h1 {
+    font-size: 42px;
+  }
+}
+
+/* Phone: image follows the 3D house instead of being squeezed across the page. */
+@media (max-width: 760px) {
+  /* The expanded watercolor may paint beyond the viewport, but must not
+     produce horizontal scrolling on the page. */
+  html {
+    overflow-x: clip;
+  }
+
+  .home-body {
+    background-attachment: scroll;
+  }
+
+  .home-body .site-shell::before {
+    display: none;
+  }
+
+  .home-body {
+    overflow-x: clip;
+  }
+
+  .home-body .site-header {
+    min-height: 84px;
+  }
+
+  .home-body .brand img {
+    width: 112px;
+  }
+
+  .home-body .home {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-height: 0;
+    padding-bottom: 27px;
+  }
+
+  .home-body .scene {
+    order: -1;
+    transform: none;
+    width: 100%;
+  }
+
+  .home-body .scene-stage {
+    position: relative;
+    height: clamp(290px, 90vw, 420px);
+    overflow: visible;
+  }
+
+  /* The painting is a landscape, not a squeezed oval confined to the scene.
+     It is deliberately wider than the phone viewport, with the edges cropped
+     by the page rather than compressed into the content column. */
+  .home-body .scene-stage::before {
+    content: '';
+    display: block;
+    position: absolute;
+    z-index: 0;
+    pointer-events: none;
+    inset: auto;
+    width: clamp(530px, 155vw, 940px);
+    aspect-ratio: 1160 / 780;
+    height: auto;
+    left: 50%;
+    top: 47%;
+    transform: translate(-50%, -50%);
+    background: url('night-watercolor-mobile.webp') center / 100% 100% no-repeat;
+  }
+
+  .home-body .scene-controls {
+    margin-top: -20px;
+    margin-bottom: 18px;
+    z-index: 3;
+    gap: 8px;
+  }
+
+  .home-body .scene-hint {
+    font-size: 11px;
+  }
+
+  .home-body .rotate {
+    width: 43px;
+    height: 43px;
+    flex-shrink: 0;
+  }
+
+  .home-body .worlds {
+    transform: none;
+  }
+
+  .home-body .worlds h1 {
+    font-size: 39px;
+    margin-bottom: 13px;
+  }
+
+  .home-body .project-list a {
+    font-size: 19px;
+    padding: 11px 0;
+    min-height: 51px;
+  }
+
+  .home-body .site-footer {
+    min-height: 0;
+    padding-top: 19px;
+    padding-bottom: 22px;
+    gap: 12px 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-body .worlds,
+  .home-body .scene {
+    scroll-behavior: auto;
+  }
+}
+
+/* v6.3: mobile project labels attached to the visible 3D windows. */
+.window-names {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .home-body .window-label {
+    display: none !important; /* The mouse tooltip duplicates the touch labels. */
+  }
+
+  .home-body .window-names:not([hidden]) {
+    position: absolute;
+    z-index: 5;
+    inset: 0;
+    display: block;
+    pointer-events: none;
+  }
+
+  .home-body .window-name:not([hidden]) {
+    position: absolute;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 64px;
+    max-width: 132px;
+    min-height: 29px;
+    padding: 6px 10px;
+    border-radius: 18px;
+    border: 1px solid rgba(242, 203, 146, .55);
+    background: rgba(8, 34, 44, .87);
+    box-shadow: 0 4px 14px rgba(7, 22, 32, .28);
+    color: #ffebcb;
+    font-size: 12px;
+    line-height: 1.3;
+    text-align: center;
+    white-space: nowrap;
+    text-decoration: none;
+    transform: translate(-50%, -100%);
+    pointer-events: auto;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .home-body .window-name:focus-visible {
+    outline: 2px solid #ffdb9e;
+    outline-offset: 3px;
+  }
+
+  .home-body .scene-stage.is-entering .window-names {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s ease;
+  }
+}

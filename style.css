@@ -1,14 +1,14 @@
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   --night: #0b1728;
   --night-deep: #080f1c;
   --blue: #132941;
   --blue-soft: #20405a;
-  --ivory: #eee2cf;
-  --muted: #aabecb;
-  --amber: #f1bd78;
+  --ivory: #263a42;
+  --muted: #63777d;
+  --amber: #a36a38;
   --amber-soft: #ffdfad;
-  --line: rgba(169, 193, 207, 0.17);
+  --line: rgba(62, 77, 73, 0.20);
   --panel: rgba(16, 29, 45, 0.88);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-synthesis: none;
@@ -26,9 +26,10 @@ body {
   margin: 0;
   min-height: 100vh;
   color: var(--ivory);
+  /* v4.1: warm sandy world outside the isolated cold-blue island. */
   background:
-    radial-gradient(ellipse at 72% 48%, rgba(53, 96, 105, 0.95) 0%, rgba(31, 73, 85, 0.82) 22%, rgba(16, 42, 59, 0.9) 42%, rgba(11, 23, 40, 0.98) 68%, rgba(8, 15, 28, 1) 100%),
-    linear-gradient(180deg, #102233 0%, #0b1728 100%);
+    radial-gradient(ellipse at 77% 47%, #f2e7d7 0%, #efe3d0 35%, #e7d7c0 72%, #e8dac7 100%),
+    linear-gradient(150deg, #f6ecde, #e9d9c2);
   font-size: 15px;
 }
 
@@ -37,10 +38,10 @@ body::before {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  opacity: 0.28;
+  opacity: 0.12;
   background-image: url("assets/night-grain.svg");
   background-size: 280px 280px;
-  mix-blend-mode: soft-light;
+  mix-blend-mode: multiply;
 }
 
 body::after {
@@ -49,10 +50,10 @@ body::after {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 64% 42%, rgba(241, 189, 120, 0.06), transparent 18%),
-    radial-gradient(circle at 69% 52%, rgba(255, 212, 147, 0.04), transparent 30%),
-    radial-gradient(circle at 48% 100%, rgba(21, 51, 71, 0.4), transparent 38%);
+    radial-gradient(ellipse at 14% 23%, rgba(255, 250, 236, 0.30), transparent 42%),
+    radial-gradient(ellipse at 89% 88%, rgba(184, 153, 111, 0.11), transparent 34%);
 }
+
 
 
 a {
@@ -156,7 +157,7 @@ button:disabled {
 .header-link:hover,
 .footer-links a:hover,
 .back:hover {
-  color: var(--amber);
+  color: #8c5428;
 }
 
 .home {
@@ -199,7 +200,7 @@ button:disabled {
   min-height: 56px;
   padding: 15px 0;
   border-bottom: 1px solid var(--line);
-  color: #c9d4d9;
+  color: #41545a;
   font-size: clamp(17px, 1.65vw, 22px);
   font-weight: 400;
   transition:
@@ -212,13 +213,13 @@ button:disabled {
 .project-list a:focus-visible,
 .project-list a.is-active {
   color: var(--amber);
-  border-color: #b38b5b;
+  border-color: rgba(170, 109, 57, 0.60);
   padding-inline-start: 7px;
 }
 
 .arrow {
   font-size: 15px;
-  color: #839eaf;
+  color: #798b8a;
   transition: color 0.25s ease;
 }
 
@@ -240,19 +241,50 @@ button:disabled {
   height: clamp(340px, 49vw, 600px);
   position: relative;
   isolation: isolate;
+  overflow: visible;
+}
+
+.scene-stage::before,
+.scene-stage::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+/* Soft night veil: organic, feathered, and comfortably behind the house.
+   We intentionally avoid the torn-paper splatter from v4.1. */
+.scene-stage::before {
+  z-index: 0;
+  inset: -4% -5% 4% -4%;
+  background: url("assets/night-patch.png") center / 100% 100% no-repeat;
+  opacity: 0.96;
+}
+
+/* A quiet warm breath inside the cool air, not a bright yellow spotlight. */
+.scene-stage::after {
+  z-index: 1;
+  inset: 19% 10% 18% 24%;
+  background: radial-gradient(
+    ellipse at 65% 54%,
+    rgba(225, 196, 157, 0.15) 0%,
+    rgba(225, 196, 157, 0.05) 34%,
+    transparent 72%
+  );
 }
 
 .scene-halo {
   position: absolute;
+  z-index: 1;
   inset: 0;
   background:
-    radial-gradient(ellipse at 52% 51%, rgba(238, 193, 130, 0.16), transparent 20%),
-    radial-gradient(ellipse at 52% 51%, rgba(99, 143, 167, 0.14), transparent 62%);
+    radial-gradient(ellipse at 51% 56%, rgba(224, 202, 157, 0.075), transparent 29%),
+    radial-gradient(ellipse at 54% 54%, rgba(76, 136, 144, 0.04), transparent 61%);
   pointer-events: none;
 }
 
 .scene-fallback {
   position: absolute;
+  z-index: 2;
   inset: 0;
   display: grid;
   place-items: center;
@@ -266,6 +298,7 @@ button:disabled {
 
 .scene canvas {
   position: absolute;
+  z-index: 2;
   inset: 0;
   width: 100%;
   height: 100%;
@@ -314,7 +347,7 @@ button:disabled {
   display: grid;
   place-items: center;
   border: 1px solid var(--line);
-  background: rgba(21, 43, 60, 0.5);
+  background: rgba(245, 235, 219, 0.35);
   border-radius: 50%;
   transition:
     border-color 0.2s ease,
@@ -338,14 +371,14 @@ button:disabled {
 
 .window-label {
   position: absolute;
-  z-index: 3;
+  z-index: 4;
   transform: translate(-50%, -115%);
   padding: 7px 13px;
   background: rgba(16, 29, 45, 0.91);
   border: 1px solid rgba(228, 183, 116, 0.48);
   border-radius: 6px;
   box-shadow: 0 4px 24px rgba(8, 14, 24, 0.31);
-  color: var(--amber-soft);
+  color: #ffe3b7;
   white-space: nowrap;
   pointer-events: none;
   font-size: 12px;
@@ -360,7 +393,7 @@ button:disabled {
   flex-wrap: wrap;
   padding: 18px 0;
   border-top: 1px solid var(--line);
-  color: #a5b7c3;
+  color: #687a7b;
   font-size: 12px;
 }
 
@@ -400,8 +433,8 @@ button:disabled {
 }
 
 .language option {
-  background: #14273b;
-  color: #ece3d5;
+  background: #f4e9d8;
+  color: #273b41;
 }
 
 .select-chevron {
@@ -462,7 +495,7 @@ button:disabled {
 
 .detail-kicker {
   margin: 0 0 16px;
-  color: var(--amber);
+  color: #a16c37;
   font-size: 12px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -477,7 +510,7 @@ button:disabled {
 }
 
 .detail-description {
-  color: #c2ced5;
+  color: #526569;
   font-size: clamp(16px, 1.8vw, 21px);
   line-height: 1.75;
   white-space: pre-line;
@@ -494,9 +527,9 @@ button:disabled {
 .detail-actions a {
   min-height: 44px;
   padding: 12px 18px;
-  border: 1px solid #b19064;
+  border: 1px solid #a7835e;
   border-radius: 5px;
-  color: #f4d4a1;
+  color: #8c562a;
   transition: background 0.2s ease;
 }
 
@@ -551,23 +584,23 @@ button:disabled {
 }
 
 .detail-body {
-  --amber: #f1bd78;
+  --amber: #a36a38;
 }
 
 .detail-body[data-view="livemo"] {
-  background: radial-gradient(ellipse at 72% 46%, #254b45, #10282e 50%, #0b1825 100%);
+  background: radial-gradient(ellipse at 72% 46%, #d6e0d5, #e9e4d4 58%, #f1e6d5 100%);
 }
 
 .detail-body[data-view="our-quest"] {
-  background: radial-gradient(ellipse at 72% 46%, #4a4933, #202e31 50%, #0b1825 100%);
+  background: radial-gradient(ellipse at 72% 46%, #e9dbba, #ece3d3 58%, #f1e6d5 100%);
 }
 
 .detail-body[data-view="feel"] {
-  background: radial-gradient(ellipse at 72% 46%, #433c5a, #252a40 50%, #0b1825 100%);
+  background: radial-gradient(ellipse at 72% 46%, #d9d4e5, #e9e1dc 58%, #f1e6d5 100%);
 }
 
 .detail-body[data-view="playable-letter"] {
-  background: radial-gradient(ellipse at 72% 46%, #494038, #23322f 50%, #0b1825 100%);
+  background: radial-gradient(ellipse at 72% 46%, #ead7ce, #eee2d3 58%, #f1e6d5 100%);
 }
 
 @media (max-width: 760px) {
@@ -691,4 +724,15 @@ button:disabled {
 
 [dir="rtl"] .back {
   direction: rtl;
+}
+
+
+@media (max-width: 760px) {
+  .scene-stage::before {
+    inset: -3% -5% 3% -5%;
+  }
+
+  .scene-stage::after {
+    inset: 20% 9% 20% 17%;
+  }
 }
