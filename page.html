@@ -10,6 +10,12 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="assets/project-pages.css">
 
+    <!-- Keep older links to Playable Letter working. -->
+    <script>
+      if (new URLSearchParams(location.search).get('view') === 'playable-letter') {
+        location.replace(new URL('playable-letter/', document.baseURI).href);
+      }
+    </script>
     <script defer src="texts.js"></script>
     <script defer src="script.js"></script>
   </head>
@@ -46,7 +52,7 @@
             <a data-world="livemo" href="page.html?view=livemo">livEmo</a>
             <a data-world="our-quest" href="page.html?view=our-quest">Our Quest</a>
             <a data-world="feel" href="page.html?view=feel">FEEL</a>
-            <a data-world="playable-letter" href="page.html?view=playable-letter">Playable Letter</a>
+            <a data-world="playable-letter" href="playable-letter/">Playable Letter</a>
           </div>
         </nav>
       </main>
