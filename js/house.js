@@ -1,208 +1,370 @@
-/* MiFiL procedural WebGL house. No external dependencies. */
+/**
+ * MiFiL A-frame viewer: a dependency-free glTF 2.0 / GLB WebGL renderer.
+ * Loads the actual named meshes and textures from the project's .glb file.
+ * Built specifically for the exported MiFiL model: triangles, PNG textures,
+ * metallic-roughness base colors and alpha blending. No CDN required.
+ */
 (() => {
-'use strict';
-const TAU=Math.PI*2, clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
-const add=(a,b)=>a.map((x,i)=>x+b[i]), sub=(a,b)=>a.map((x,i)=>x-b[i]), mul=(a,x)=>a.map(v=>v*x), dot=(a,b)=>a.reduce((s,x,i)=>s+x*b[i],0), cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]], norm=a=>mul(a,1/(Math.hypot(...a)||1));
-function mult(a,b){let o=new Float32Array(16);for(let c=0;c<4;c++)for(let r=0;r<4;r++)for(let k=0;k<4;k++)o[c*4+r]+=a[k*4+r]*b[c*4+k];return o;}
-function perspective(fov,aspect,near,far){const f=1/Math.tan(fov/2),d=1/(near-far);return new Float32Array([f/aspect,0,0,0,0,f,0,0,0,0,(far+near)*d,-1,0,0,2*far*near*d,0]);}
-function view(eye,target){const z=norm(sub(eye,target)),x=norm(cross([0,1,0],z)),y=cross(z,x);return new Float32Array([x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-dot(x,eye),-dot(y,eye),-dot(z,eye),1]);}
-function project(m,p){const v=[...p,1],q=[0,0,0,0];for(let r=0;r<4;r++)for(let c=0;c<4;c++)q[r]+=m[c*4+r]*v[c];return [q[0]/q[3],q[1]/q[3],q[2]/q[3]];}
-const rgb=h=>[0,2,4].map(i=>parseInt(h.slice(i,i+2),16)/255);
-const windows=[{id:'livemo',name:'livEmo',c:[-1.03,1.48,1.216],n:[0,0,1],u:[1,0,0],w:.83,h:1.00,angle:0},{id:'our-quest',name:'Our Quest',c:[1.816,1.48,.03],n:[1,0,0],u:[0,0,-1],w:1.0,h:1.04,angle:Math.PI/2},{id:'feel',name:'FEEL',c:[.12,1.53,-1.216],n:[0,0,-1],u:[-1,0,0],w:.92,h:1.14,angle:Math.PI},{id:'playable-letter',name:'Playable Letter',c:[-1.816,1.46,-.05],n:[-1,0,0],u:[0,0,1],w:1.03,h:.96,angle:-Math.PI/2}];
-function makeGeometry(){// V3 palette: warmer, lived-in surfaces, deep green-slate roof, walnut wood.
-// Modify these hex values when experimenting with the home's character.
-const v=[];
-const colors={
-  wall:rgb('dccbb6'),      // warm weathered plaster
-  gable:rgb('d6c7b4'),     // soft cream-clay under the roof
-  roof:rgb('385154'),      // deep muted petrol, not bright blue
-  edge:rgb('6d6457'),      // exposed timber at the roof edge
-  trim:rgb('614d42'),      // window frames and door posts
-  stone:rgb('88796d'),     // sandy foundation/steps
-  wood:rgb('78513d'),      // aged walnut door and torch mounts
-  glass:rgb('f2c98a'),     // lamplight within the room
-  glass2:rgb('f7e7c4'),    // warm center of window light
-  iron:rgb('70543f'),
-  cat:rgb('292a2b'),
-  curtain:rgb('9a6853'),
-  green:rgb('53684d'),
-  flower:rgb('e7b581'),
-};
-let id=0;
-function tri(a,b,c,col,emit=0,alpha=1,n,depth=0){n=n||norm(cross(sub(b,a),sub(c,a)));if(!emit&&depth<4&&Math.max(Math.hypot(...sub(a,b)),Math.hypot(...sub(b,c)),Math.hypot(...sub(c,a)))>.44){const ab=mul(add(a,b),.5),bc=mul(add(b,c),.5),ca=mul(add(c,a),.5);tri(a,ab,ca,col,emit,alpha,n,depth+1);tri(ab,b,bc,col,emit,alpha,n,depth+1);tri(ca,bc,c,col,emit,alpha,n,depth+1);tri(ab,bc,ca,col,emit,alpha,n,depth+1);return;}for(const p of [a,b,c])v.push(...p,...n,...col,emit,id,alpha);}
-function quad(a,b,c,d,col,e=0,alpha=1,n){tri(a,b,c,col,e,alpha,n);tri(a,c,d,col,e,alpha,n);}
-function box(c,s,col,e=0){const [x,y,z]=c,[a,b,d]=s.map(x=>x/2),p=(i,j,k)=>[x+i*a,y+j*b,z+k*d];quad(p(-1,-1,1),p(1,-1,1),p(1,1,1),p(-1,1,1),col,e);quad(p(1,-1,-1),p(-1,-1,-1),p(-1,1,-1),p(1,1,-1),col,e);quad(p(1,-1,1),p(1,-1,-1),p(1,1,-1),p(1,1,1),col,e);quad(p(-1,-1,-1),p(-1,-1,1),p(-1,1,1),p(-1,1,-1),col,e);quad(p(-1,1,1),p(1,1,1),p(1,1,-1),p(-1,1,-1),col,e);quad(p(-1,-1,-1),p(1,-1,-1),p(1,-1,1),p(-1,-1,1),col,e);}
-function ellipsoid(c,s,col,e=0,rows=8,segments=14){const p=(i,j)=>{let t=Math.PI*i/rows,f=TAU*j/segments;return add(c,[s[0]*Math.sin(t)*Math.cos(f),s[1]*Math.cos(t),s[2]*Math.sin(t)*Math.sin(f)]);};for(let i=0;i<rows;i++)for(let j=0;j<segments;j++){const a=p(i,j),b=p(i+1,j),d=p(i,j+1),cc=p(i+1,j+1);tri(a,d,b,col,e);tri(b,d,cc,col,e);}}
-function faceBox(w,x,y,z,sx,sy,sz,col,e=0){const p=add(w.c,add(mul(w.u,x),add([0,y,0],mul(w.n,z))));box(p,[Math.abs(w.u[0])*sx+Math.abs(w.n[0])*sz,sy,Math.abs(w.u[2])*sx+Math.abs(w.n[2])*sz],col,e);}
-// The modest house: base, wooden walls, slightly uneven gable roof.
-box([0,.06,0],[3.86,.22,2.68],colors.stone);box([0,1.19,0],[3.6,2.17,2.4],colors.wall);
-for(const z of [-1.2,1.2]){const a=[-1.8,2.275,z],b=[1.8,2.275,z],c=[-.12,3.37,z];if(z>0)tri(a,b,c,colors.gable);else tri(b,a,c,colors.gable);}
-const fa=[-2.04,2.17,1.46],fb=[-.12,3.47,1.44],fc=[2.06,2.21,1.49],ba=[-2.04,2.19,-1.44],bb=[-.05,3.40,-1.46],bc=[2.06,2.19,-1.46];
-quad(fa,fb,bb,ba,colors.roof);quad(fb,fc,bc,bb,colors.roof); // normals corrected via shader abs? ensure outward below
-const offset=p=>add(p,[0,-.12,0]);quad(fa,offset(fa),offset(fb),fb,colors.edge);quad(fb,offset(fb),offset(fc),fc,colors.edge);quad(bb,offset(bb),offset(ba),ba,colors.edge);quad(bc,offset(bc),offset(bb),bb,colors.edge);quad(ba,offset(ba),offset(fa),fa,colors.edge);quad(fc,offset(fc),offset(bc),bc,colors.edge);
-// roof seam lines, subtle and sparse
-for(let k=1;k<5;k++){const t=k/5;const lp=add(fa,mul(sub(ba,fa),t)),cp=add(fb,mul(sub(bb,fb),t)),rp=add(fc,mul(sub(bc,fc),t));const q=p=>add(p,[0,.012,0]);const dz=[0,0,.013];quad(q(lp),q(cp),add(q(cp),dz),add(q(lp),dz),rgb('526264'));quad(q(cp),q(rp),add(q(rp),dz),add(q(cp),dz),rgb('526264'));}
-box([.90,3.23,-.61],[.38,.91,.48],rgb('776e61'));box([.90,3.72,-.61],[.49,.13,.58],rgb('a58f75'));box([.9,3.79,-.61],[.30,.025,.36],colors.trim);
-// corners and horizontal join above the foundation
-for(const x of [-1.77,1.77])for(const z of [-1.17,1.17])box([x,1.18,z],[.10,2.13,.10],rgb('826e5c'));
-for(const z of [-1.207,1.207])box([0,.26,z],[3.6,.10,.025],rgb('8b7762'));for(const x of [-1.807,1.807])box([x,.26,0],[.025,.1,2.4],rgb('8b7762'));
-// Project windows: warm inner panes, deep timber frames, a proper sill.
-windows.forEach((w,j)=>{id=j+1;faceBox(w,0,0,.015,w.w+.16,w.h+.14,.10,colors.trim);faceBox(w,0,0,.073,w.w,w.h,.046,colors.wood);for(let i=0;i<4;i++){const x=(i%2?1:-1)*w.w*.246,y=(i<2?1:-1)*w.h*.25;faceBox(w,x,y,.110,w.w*.414,w.h*.43,.018,i<2?colors.glass2:colors.glass,1);}
-// Subtle curtains near the sides, visible only when approaching the house.
-faceBox(w,-w.w*.40,w.h*.24,.142,w.w*.10,w.h*.44,.012,colors.curtain);
-faceBox(w, w.w*.40,w.h*.24,.142,w.w*.10,w.h*.44,.012,colors.curtain);
-faceBox(w,0,0,.155,.047,w.h+.02,.05,colors.iron);
-faceBox(w,0,0,.155,w.w+.02,.047,.05,colors.iron);
-faceBox(w,0,-w.h/2-.083,.092,w.w+.27,.11,.30,rgb('ac9073'));
-id=0;
-});
-// front door, planks, tiny step
-box([.65,.86,1.22],[.80,1.46,.12],colors.trim);
-box([.65,.86,1.295],[.65,1.31,.04],colors.wood);
-for(let x=.43;x<.94;x+=.145)box([x,.86,1.325],[.012,1.25,.008],rgb('5a4035'));
-box([.65,1.64,1.34],[.93,.09,.28],rgb('94745b')); // little wooden awning
-ellipsoid([.85,.84,1.35],[.044,.044,.027],rgb('e3b673'));
-box([.65,.14,1.39],[.98,.17,.40],colors.stone);
-box([.65,.22,1.66],[.68,.028,.32],rgb('866b55')); // modest welcome mat
-// Small potted plant: every visible leaf has a stem connected to the pot.
-// Pot top is y = 0.485; stalks begin inside it rather than floating above it.
-box([1.43,.36,1.39],[.24,.25,.22],rgb('765343'));
-box([1.43,.49,1.39],[.255,.035,.235],rgb('88624d'));
+  'use strict';
 
-const plantBase=[1.43,.485,1.515];
-const stemColor=rgb('526449');
-const leafColor=rgb('53684d');
-function plantStem(from,to,width=.012){
-  const dx=to[0]-from[0],dy=to[1]-from[1];
-  const len=Math.hypot(dx,dy)||1;
-  const nx=-dy/len*width*.5,ny=dx/len*width*.5;
-  quad(
-    [from[0]+nx,from[1]+ny,from[2]],
-    [from[0]-nx,from[1]-ny,from[2]],
-    [to[0]-nx,to[1]-ny,to[2]],
-    [to[0]+nx,to[1]+ny,to[2]],
-    stemColor
-  );
-}
-const leaves=[
-  {c:[1.35,.64,1.535],s:[.052,.092,.025]},
-  {c:[1.51,.66,1.535],s:[.053,.097,.025]},
-  {c:[1.43,.76,1.538],s:[.045,.10,.025]},
-];
-for(const leaf of leaves){
-  plantStem(plantBase,[leaf.c[0],leaf.c[1]-.045,leaf.c[2]],.013);
-  ellipsoid(leaf.c,leaf.s,leafColor,0,5,9);
-}
-// One little cat on the front sill, not a mascot or an interaction.
-const c=[-.79,1.13,1.405];ellipsoid(c,[.108,.15,.067],colors.cat);ellipsoid(add(c,[.016,.15,.004]),[.083,.087,.065],colors.cat);for(const k of [-1,1]){const a=add(c,[.016+k*.075,.177,.025]),b=add(c,[.016+k*.012,.196,.025]),d=add(c,[.016+k*.056,.276,.015]);tri(a,b,d,colors.cat,0,1,[0,0,1]);tri(b,a,add(d,[0,0,-.025]),colors.cat,0,1,[0,0,-1]);}for(let i=0;i<8;i++){let t=i/7*Math.PI;ellipsoid(add(c,[-.1-.09*Math.sin(t),-.055+.09*(1-Math.cos(t)),.035]),[.028,.028,.027],colors.cat,0,4,7);}
-// A tiny reflection in the cat's eyes (subtle enough not to become a mascot).
-ellipsoid([-.823,1.286,1.474],[.009,.013,.006],rgb('e1b67e'),0,4,6);
-ellipsoid([-.779,1.286,1.474],[.009,.013,.006],rgb('e1b67e'),0,4,6);
-// Two small torches flanking the door. Flame mesh below is emissive.
-const torches=[[.08,1.45,1.33],[1.28,1.45,1.33]];for(const t of torches){box(add(t,[0,-.25,0]),[.09,.40,.09],colors.wood);box(add(t,[0,-.085,0]),[.16,.10,.16],colors.iron);ellipsoid(add(t,[0,.033,0]),[.072,.14,.072],rgb('efbb70'),2,8,12);ellipsoid(add(t,[0,.003,.015]),[.040,.086,.044],rgb('fff1d7'),2,7,10);}
-return {vertices:new Float32Array(v),torches};}
-const vertex=`attribute vec3 p;attribute vec3 n;attribute vec3 c;attribute float e;attribute float k;attribute float a;uniform mat4 m;varying vec3 pos;varying vec3 normal;varying vec3 color;varying float em;varying float key;varying float alpha;void main(){pos=p;normal=n;color=c;em=e;key=k;alpha=a;gl_Position=m*vec4(p,1.);}`;
-const fragment=`
-precision mediump float;
-varying vec3 pos;
-varying vec3 normal;
-varying vec3 color;
-varying float em;
-varying float key;
-varying float alpha;
-uniform float selected;
-uniform float time;
-
-void main() {
-  vec3 N = normalize(normal);
-  float daylight = max(dot(N, normalize(vec3(-.5, 1., .7))), 0.);
-
-  // A gentler base night light: the house stays readable without looking sprayed with yellow light.
-  vec3 ambient = vec3(.58, .585, .60);
-  vec3 base = color * (ambient + vec3(.18, .19, .19) * daylight);
-
-  // Four windows and two torches. Their influence is intentionally restrained.
-  vec3 lights[6];
-  lights[0] = vec3(-1.03, 1.48, 1.42);
-  lights[1] = vec3(2.02, 1.48, .03);
-  lights[2] = vec3(.12, 1.53, -1.42);
-  lights[3] = vec3(-2.02, 1.46, -.05);
-  lights[4] = vec3(.08, 1.50, 1.46);
-  lights[5] = vec3(1.28, 1.50, 1.46);
-
-  vec3 illumination = vec3(0.);
-  for (int i = 0; i < 6; i++) {
-    vec3 direction = lights[i] - pos;
-    float distance2 = dot(direction, direction);
-    float facing = max(dot(N, normalize(direction)), 0.);
-    float intensity = facing / (1.2 + distance2 * 1.32);
-    illumination += vec3(1.0, .72, .50) * intensity * (i < 4 ? 1.00 : 0.72);
-  }
-
-  base += illumination * (color * .20 + vec3(.10, .09, .07));
-
-  // Near-imperceptible material grain. It is intentionally NOT a noisy glow.
-  float plasterGrain = sin(pos.x * 29.4 + pos.y * 36.8 + pos.z * 19.3)
-                     * sin(pos.x * 45.2 - pos.y * 27.6 + pos.z * 33.9);
-  base *= 1.0 + plasterGrain * .014;
-
-  float chosen = 1. - step(.25, abs(key - selected));
-  if (em > .5) {
-    base = color * (0.985 + .045 * chosen + .010 * sin(time * 1.25 + key));
-    if (em > 1.5) {
-      base = color * (.93 + .035 * sin(time * 3.6));
+  const PI = Math.PI, TAU = PI * 2;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const mul = (a,b) => {const r = new Float32Array(16); for(let c=0;c<4;c++)for(let k=0;k<4;k++)for(let row=0;row<4;row++)r[c*4+row]+=a[k*4+row]*b[c*4+k];return r;};
+  const identity = () => new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);
+  const perspective = (fovy,aspect,near,far)=>{const f=1/Math.tan(fovy/2), n=1/(near-far); return new Float32Array([f/aspect,0,0,0,0,f,0,0,0,0,(far+near)*n,-1,0,0,2*near*far*n,0]);};
+  const sub=(a,b)=>a.map((v,i)=>v-b[i]);
+  const dot=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0);
+  const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+  const norm=(v)=>{let len=Math.hypot(...v)||1;return v.map(a=>a/len);};
+  const view=(eye,at)=>{let z=norm(sub(eye,at)),x=norm(cross([0,1,0],z)),y=cross(z,x);return new Float32Array([x[0],y[0],z[0],0,x[1],y[1],z[1],0,x[2],y[2],z[2],0,-dot(x,eye),-dot(y,eye),-dot(z,eye),1]);};
+  const turn=(angle)=>{let c=Math.cos(angle),s=Math.sin(angle);return new Float32Array([c,0,-s,0,0,1,0,0,s,0,c,0,0,0,0,1]);};
+  const translate=(x,y,z)=>{let m=identity();m[12]=x;m[13]=y;m[14]=z;return m;};
+  const scale=(s)=>{let m=identity();m[0]=m[5]=m[10]=s;return m;};
+  const transform=(m,p)=>[m[0]*p[0]+m[4]*p[1]+m[8]*p[2]+m[12],m[1]*p[0]+m[5]*p[1]+m[9]*p[2]+m[13],m[2]*p[0]+m[6]*p[1]+m[10]*p[2]+m[14],m[3]*p[0]+m[7]*p[1]+m[11]*p[2]+m[15]];
+  const shortest=(from,to)=>((to-from+PI)%TAU+TAU)%TAU-PI;
+  const smooth=t=>t*t*(3-2*t);
+  const ids=['livemo','our-quest','feel','playable-letter'];
+  const angles={livemo:0,'our-quest':-PI/2,feel:PI,'playable-letter':PI/2};
+  const vertexSource=`
+    attribute vec3 position; attribute vec3 normal; attribute vec2 uv;
+    uniform mat4 model; uniform mat4 mvp;
+    varying vec3 nrm; varying vec3 world; varying vec2 tex;
+    void main(){ vec4 p = model*vec4(position,1.); world=p.xyz; nrm=mat3(model)*normal; tex=uv; gl_Position=mvp*vec4(position,1.); }
+  `;
+  const fragmentSource=`
+    precision mediump float;
+    varying vec3 nrm; varying vec3 world; varying vec2 tex;
+    uniform vec4 baseColor; uniform vec3 emissive; uniform float usesTexture; uniform sampler2D diffuse; uniform float glow;
+    uniform float curtain; uniform vec2 curtainUvRange;
+    void main(){
+      vec4 color=baseColor;
+      if(usesTexture>.5)color*=texture2D(diffuse,tex);
+      vec3 n=normalize(nrm);
+      float moon=max(dot(n,normalize(vec3(-.52,.83,.48))),0.);
+      float sky=max(dot(n,normalize(vec3(.58,.45,-.58))),0.);
+      vec3 light=vec3(.66,.68,.73)+moon*vec3(.24,.26,.28)+sky*vec3(.08,.10,.14);
+      float d=length(world-vec3(0.,2.05,0.6));
+      light += vec3(.24,.135,.048)/(1.+d*d*.22);
+      vec3 rgb=color.rgb*light+emissive;
+      // Warm reflected light from the selected released window.
+      // Glass is lit more strongly; its timber frame receives only a small lift.
+      rgb += glow * vec3(.34, .21, .085);
+      rgb = mix(rgb, vec3(1.0, .79, .53), glow * .16);
+      color.a = min(1.0, color.a + glow * .11);
+      // Two gentle linen curtain panels glide inwards only for an unreleased project.
+      // UV normalized per pane, so the effect also works on the sloped roof glass.
+      if (curtain > 0.001) {
+        float u = clamp((tex.x-curtainUvRange.x)/max(.001, curtainUvRange.y-curtainUvRange.x),0.0,1.0);
+        float v = tex.y;
+        float halfCover = curtain * .52;
+        float left = 1.0-smoothstep(halfCover-.03,halfCover+.015,u);
+        float right = smoothstep(1.0-halfCover-.015,1.0-halfCover+.03,u);
+        float cover = clamp(left+right, 0.0, 1.0);
+        float folds = .92 + .065*cos(u*59.0+sin(v*17.0)*.5);
+        float bottom = .96-.045*smoothstep(.0,1.,v);
+        vec3 linen = vec3(.91,.81,.66)*folds*bottom;
+        rgb = mix(rgb, linen, cover);
+        color.a = mix(color.a, .985, cover);
+      }
+      gl_FragColor=vec4(clamp(rgb,0.,1.),color.a);
     }
+  `;
+  function shader(gl,type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s;}
+  function makeProgram(gl){const p=gl.createProgram();gl.attachShader(p,shader(gl,gl.VERTEX_SHADER,vertexSource));gl.attachShader(p,shader(gl,gl.FRAGMENT_SHADER,fragmentSource));gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));return p;}
+  const types={5120:['getInt8',1],5121:['getUint8',1],5122:['getInt16',2],5123:['getUint16',2],5125:['getUint32',4],5126:['getFloat32',4]};
+  const numbers={SCALAR:1,VEC2:2,VEC3:3,VEC4:4,MAT4:16};
+  async function loadGLB(url){
+    // HTTP hosting uses the real GLB file. For opening index.html via file://,
+    // a lazy embedded copy avoids the browser's prohibition on local fetch().
+    let file;
+    try {
+      const resp=await fetch(url,{cache:'no-store'});
+      if(!resp.ok)throw new Error(`GLB request failed: ${resp.status} ${url}`);
+      file=await resp.arrayBuffer();
+    } catch (fetchError) {
+      if(!window.MiFiLEmbeddedGLB){
+        await new Promise((resolve,reject)=>{
+          const script=document.createElement('script');
+          script.src='assets/house-data-v11.js?v=11';
+          script.onload=resolve;
+          script.onerror=()=>reject(new Error('Neither GLB nor embedded house data could load'));
+          document.head.append(script);
+        });
+      }
+      const base64=window.MiFiLEmbeddedGLB;
+      if(!base64)throw fetchError;
+      const decoded=atob(base64),array=new Uint8Array(decoded.length);
+      for(let i=0;i<decoded.length;i++)array[i]=decoded.charCodeAt(i);
+      file=array.buffer;
+      delete window.MiFiLEmbeddedGLB; // release the extra base64 copy
+    }
+    const header=new DataView(file);
+    if(header.getUint32(0,true)!==0x46546c67||header.getUint32(4,true)!==2)throw new Error('Not a glTF 2.0 binary');
+    let json,bin,offset=12;
+    while(offset<file.byteLength){
+      const len=header.getUint32(offset,true),tag=header.getUint32(offset+4,true);offset+=8;
+      if(tag===0x4e4f534a)json=JSON.parse(new TextDecoder().decode(new Uint8Array(file,offset,len)));
+      if(tag===0x004e4942)bin=file.slice(offset,offset+len);
+      offset+=len;
+    }
+    if(!json||!bin)throw new Error('Missing GLB JSON or geometry');
+    return {json,bin};
   }
-
-  gl_FragColor = vec4(clamp(base, 0., 1.), alpha);
-}`;
-const glowV=`attribute vec3 p;attribute vec2 uv;attribute float power;uniform mat4 m;varying vec2 t;varying float b;void main(){t=uv;b=power;gl_Position=m*vec4(p,1.);}`;
-const glowF=`precision mediump float;varying vec2 t;varying float b;uniform float mode;void main(){float r=length(t);float a=exp(-r*r*5.8)*(1.-smoothstep(.58,1.,r))*b;if(mode>.5)gl_FragColor=vec4(.025,.045,.075,a);else gl_FragColor=vec4(.98,.84,.68,a);}`;
-function program(gl,vs,fs){function shader(type,source){const sh=gl.createShader(type);gl.shaderSource(sh,source);gl.compileShader(sh);if(!gl.getShaderParameter(sh,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(sh));return sh;}const pr=gl.createProgram();gl.attachShader(pr,shader(gl.VERTEX_SHADER,vs));gl.attachShader(pr,shader(gl.FRAGMENT_SHADER,fs));gl.linkProgram(pr);if(!gl.getProgramParameter(pr,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(pr));return pr;}
-class House{
- constructor(canvas,opt){this.canvas=canvas;this.opt=opt;const gl=this.gl=canvas.getContext('webgl',{alpha:true,antialias:true,premultipliedAlpha:false});const data=makeGeometry();this.count=data.vertices.length/12;this.torches=data.torches;if(gl){canvas.dataset.renderer='webgl';this.main=program(gl,vertex,fragment);this.glow=program(gl,glowV,glowF);this.buf=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,this.buf);gl.bufferData(gl.ARRAY_BUFFER,data.vertices,gl.STATIC_DRAW);this.gb=gl.createBuffer();}else{this.ctx=canvas.getContext('2d');if(!this.ctx)throw Error('3D rendering unavailable');this.faces=[];const a=data.vertices;for(let i=0;i<a.length;i+=36){const pts=[0,12,24].map(k=>Array.from(a.slice(i+k,i+k+3)));this.faces.push({pts,n:Array.from(a.slice(i+3,i+6)),col:Array.from(a.slice(i+6,i+9)),em:a[i+9],key:a[i+10],center:mul(add(add(pts[0],pts[1]),pts[2]),1/3)});}canvas.dataset.renderer='software-3d';}this.angle=Number.isFinite(opt.angle)?opt.angle:.68;this.pitch=.27;this.distance=7.75;this.target=[0,1.57,0];this.highlight=null;this.motion=null;this.last=0;this.down=null;this.active=true;this.reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;this.dirty=true;this.addEvents();this.resize();this.render(0);this.loop=this.loop.bind(this);this.raf=requestAnimationFrame(this.loop);}
- addEvents(){const c=this.canvas;this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(c);c.addEventListener('webglcontextlost',e=>{e.preventDefault();this.active=false;this.opt.onLost?.();});c.addEventListener('pointerdown',e=>{if(this.motion?.enter||e.button!==0)return;this.motion=null;this.down={id:e.pointerId,x:e.clientX,y:e.clientY,last:e.clientX,moved:false};});c.addEventListener('pointermove',e=>{if(this.motion?.enter)return;const d=this.down;if(d&&d.id===e.pointerId){if(!d.moved&&Math.abs(e.clientX-d.x)>6&&Math.abs(e.clientX-d.x)>Math.abs(e.clientY-d.y)){d.moved=true;c.setPointerCapture(e.pointerId);c.classList.add('dragging');}if(d.moved){this.angle-=(e.clientX-d.last)*.009;this.dirty=true;this.highlight=null;this.opt.onHover?.(null);}}if(d)d.last=e.clientX;if(!d||!d.moved){const w=this.hit(e.clientX,e.clientY);this.hover(w);}});c.addEventListener('pointerup',e=>{const d=this.down;if(!d||d.id!==e.pointerId)return;this.down=null;c.classList.remove('dragging');if(!d.moved&&Math.hypot(e.clientX-d.x,e.clientY-d.y)<10){const w=this.hit(e.clientX,e.clientY);if(w)this.opt.onSelect?.(w.id);}});const clear=()=>{this.down=null;c.classList.remove('dragging');this.hover(null);};c.addEventListener('pointercancel',clear);c.addEventListener('pointerleave',()=>{if(!this.down?.moved){clear();}});}
- resize(){const c=this.canvas,r=c.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,1.7);c.width=Math.max(1,Math.round(r.width*d));c.height=Math.max(1,Math.round(r.height*d));this.dirty=true;}
- hover(w){this.highlight=w?.id||null;this.canvas.classList.toggle('window-hover',!!w);this.opt.onHover?.(this.highlight,w?this.screen(w.c):null);this.dirty=true;}
- setHighlight(id){this.highlight=id;this.dirty=true;}
- screen(p){const q=project(this.matrix,p),r=this.canvas.getBoundingClientRect();return {x:(q[0]+1)*r.width/2,y:(1-q[1])*r.height/2};}
-
- // Find the front-facing project windows on the current 3D house orientation.
- // Each label is positioned using the same perspective projection as the house.
- visibleWindows(){
-   if(!this.matrix||!this.eye)return [];
-   const rect=this.canvas.getBoundingClientRect();
-   return windows.flatMap(w=>{
-     const facing=dot(w.n,norm(sub(this.eye,w.c)));
-     if(facing<.26)return [];
-     const point=this.screen(w.c);
-     if(!Number.isFinite(point.x)||!Number.isFinite(point.y))return [];
-     if(point.x<0||point.x>rect.width||point.y<0||point.y>rect.height)return [];
-     return [{id:w.id,x:point.x,y:point.y,facing}];
-   });
- }
- hit(x,y){if(!this.matrix)return null;const r=this.canvas.getBoundingClientRect(),p=[x-r.left,y-r.top];let found=null,dist=Infinity;for(const w of windows){if(dot(w.n,sub(this.eye,w.c))<.04)continue;const a=w.w*.66,b=w.h*.64;const corners=[[-a,-b],[a,-b],[a,b],[-a,b]].map(([u,v])=>this.screen(add(w.c,add(mul(w.u,u),[0,v,0]))));let sign=0,ok=true;for(let i=0;i<4;i++){const j=(i+1)%4,d=(corners[j].x-corners[i].x)*(p[1]-corners[i].y)-(corners[j].y-corners[i].y)*(p[0]-corners[i].x);if(Math.abs(d)<.001)continue;if(sign&&Math.sign(d)!==sign){ok=false;break;}sign=Math.sign(d);}if(ok){let t=Math.hypot(...sub(w.c,this.eye));if(t<dist){found=w;dist=t;}}}return found;}
- rotate(delta){if(this.motion?.enter)return;this.hover(null);this.motion={start:performance.now(),duration:this.reduce?1:470,from:this.angle,to:this.angle+delta,enter:false};this.dirty=true;}
- enter(id,done){const w=windows.find(w=>w.id===id);if(!w)return false;if(this.reduce){done();return true;}if(this.motion?.enter)return true;this.down=null;this.canvas.classList.remove('dragging');this.highlight=id;let d=((w.angle-this.angle+Math.PI)%TAU+TAU)%TAU-Math.PI;this.motion={start:performance.now(),duration:1450,from:this.angle,to:this.angle+d,enter:true,w,done,notified:false};this.dirty=true;return true;}
- loop(t){if(!this.active)return;let changing=false;const m=this.motion;if(m){const k=clamp((t-m.start)/m.duration,0,1);const smooth=x=>x*x*(3-2*x);const turn=smooth(clamp(k/(m.enter?.56:1),0,1));this.angle=m.from+(m.to-m.from)*turn;if(m.enter){const zoom=smooth(clamp((k-.38)/.62,0,1));this.distance=7.75-(7.75-2.85)*zoom;this.pitch=.27*(1-zoom);this.target=[0,1.57,0].map((v,i)=>v+(m.w.c[i]-v)*zoom);if(k>.77&&!m.notified){m.notified=true;this.opt.onEnter?.();}}changing=true;if(k>=1){this.motion=null;if(m.enter)m.done();}}if(this.dirty||changing||(!this.reduce&&t-this.last>(this.gl?85:240))){this.render(this.reduce?0:t/1000);this.opt.onVisibleWindows?.(this.visibleWindows());this.last=t;this.dirty=false;}this.raf=requestAnimationFrame(this.loop);}
- bind(pr,b,attributes,stride){const gl=this.gl;gl.bindBuffer(gl.ARRAY_BUFFER,b);for(const [name,size,offset] of attributes){const loc=gl.getAttribLocation(pr,name);if(loc<0)continue;gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,stride*4,offset*4);}}
- disable(pr,names){for(const name of names){const l=this.gl.getAttribLocation(pr,name);if(l>=0)this.gl.disableVertexAttribArray(l);}}
- drawGlow(sprites,mode){const gl=this.gl,p=this.glow;const vertices=[];for(const s of sprites){const {c,u,v,b}=s;const point=(x,y)=>add(c,add(mul(u,x),mul(v,y)));for(const [x,y] of [[-1,-1],[1,-1],[1,1],[-1,-1],[1,1],[-1,1]])vertices.push(...point(x,y),x,y,b);}
- if(!vertices.length)return;gl.useProgram(p);gl.bindBuffer(gl.ARRAY_BUFFER,this.gb);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.DYNAMIC_DRAW);this.bind(p,this.gb,[['p',3,0],['uv',2,3],['power',1,5]],6);gl.uniformMatrix4fv(gl.getUniformLocation(p,'m'),false,this.matrix);gl.uniform1f(gl.getUniformLocation(p,'mode'),mode);gl.drawArrays(gl.TRIANGLES,0,vertices.length/6);this.disable(p,['p','uv','power']);}
- renderSoftware(t){const c=this.canvas,ctx=this.ctx;if(!c.width||!c.height)return;const aspect=c.width/c.height,dist=this.distance*Math.max(1,1.06/aspect);this.eye=add(this.target,[Math.sin(this.angle)*dist*Math.cos(this.pitch),Math.sin(this.pitch)*dist,Math.cos(this.angle)*dist*Math.cos(this.pitch)]);this.matrix=mult(perspective(Math.PI/4,aspect,.07,70),view(this.eye,this.target));const screen=p=>{const q=project(this.matrix,p);return [(q[0]+1)*c.width/2,(1-q[1])*c.height/2,q[2]]};ctx.clearRect(0,0,c.width,c.height);const ground=screen([0,-.04,0]),size=Math.abs(screen([2,0,0])[0]-ground[0])+Math.abs(screen([0,0,2])[0]-ground[0]);ctx.save();ctx.translate(ground[0],ground[1]);ctx.scale(Math.max(1,size),Math.max(1,size*.24));let g=ctx.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,'rgba(2,9,17,.7)');g.addColorStop(1,'rgba(2,9,17,0)');ctx.fillStyle=g;ctx.fillRect(-1,-1,2,2);ctx.restore();for(const w of windows){const q=screen(add([w.c[0],.005,w.c[2]],mul(w.n,.76)));const rad=Math.max(12,c.height/this.distance*1.60);ctx.save();ctx.translate(q[0],q[1]);ctx.scale(1,.32);const pool=ctx.createRadialGradient(0,0,0,0,0,rad);pool.addColorStop(0,'rgba(244,202,145,.12)');pool.addColorStop(.42,'rgba(230,186,124,.06)');pool.addColorStop(1,'rgba(231,152,67,0)');ctx.fillStyle=pool;ctx.fillRect(-rad,-rad,2*rad,2*rad);ctx.restore();}const forward=norm(sub(this.eye,this.target));const lamp=norm([-.5,1,.7]);const lightPts=[...windows.map(w=>add(w.c,mul(w.n,.22))),...this.torches.map(q=>add(q,[0,.04,.12]))];const sel=windows.findIndex(w=>w.id===this.highlight)+1;
- // A real depth buffer for the software renderer (not a flat illustration or painter's sort).
- const scale=Math.min(1,800/Math.max(c.width,c.height)),W=Math.max(1,Math.round(c.width*scale)),H=Math.max(1,Math.round(c.height*scale));if(!this.offscreen){this.offscreen=document.createElement('canvas');this.offctx=this.offscreen.getContext('2d');}if(this.offscreen.width!==W||this.offscreen.height!==H||!this.image){this.offscreen.width=W;this.offscreen.height=H;this.image=this.offctx.createImageData(W,H);this.zbuf=new Float32Array(W*H);}const pixels=this.image.data,zbuf=this.zbuf;pixels.fill(0);zbuf.fill(Infinity);
- const sp=p=>{const q=project(this.matrix,p);return [(q[0]+1)*W/2,(1-q[1])*H/2,q[2]]};
- for(const f of this.faces){if(dot(f.n,sub(this.eye,f.center))<-.002)continue;const pts=f.pts.map(sp);if(pts.some(p=>!Number.isFinite(p[0])||p[2]>1.01))continue;const base=f.col.map((x,i)=>x*([.56,.57,.60][i]+[.22,.23,.23][i]*Math.max(0,dot(f.n,lamp))));const shade=p=>{if(f.em>.5){const m=f.em>1.5?.93+.07*Math.sin(t*5):.99+(f.key===sel?.09:0)+.012*Math.sin(t*1.5+f.key);return f.col.map(x=>clamp(x*m,0,1)*255)}let rgb=base.slice();for(const [i,point] of lightPts.entries()){const d=sub(point,p),l=Math.max(0,dot(f.n,norm(d)))/(1+dot(d,d)*1.05)*(i<4?1.00:0.72);rgb=rgb.map((x,j)=>x+[1,.72,.50][j]*l*(f.col[j]*.20+[.10,.09,.07][j]));}return rgb.map(x=>clamp(x,0,1)*255)};const shades=f.em>.5?f.pts.map(shade):(f.shades||(f.shades=f.pts.map(shade)));const [a,q,d]=pts;const den=(q[1]-d[1])*(a[0]-d[0])+(d[0]-q[0])*(a[1]-d[1]);if(Math.abs(den)<.0001)continue;const minx=Math.max(0,Math.floor(Math.min(a[0],q[0],d[0]))),maxx=Math.min(W-1,Math.ceil(Math.max(a[0],q[0],d[0]))),miny=Math.max(0,Math.floor(Math.min(a[1],q[1],d[1]))),maxy=Math.min(H-1,Math.ceil(Math.max(a[1],q[1],d[1])));for(let y=miny;y<=maxy;y++)for(let x=minx;x<=maxx;x++){const u=((q[1]-d[1])*(x+.5-d[0])+(d[0]-q[0])*(y+.5-d[1]))/den;if(u<-.00001||u>1.00001)continue;const v=((d[1]-a[1])*(x+.5-d[0])+(a[0]-d[0])*(y+.5-d[1]))/den;if(v<-.00001||u+v>1.00001)continue;const z=u*a[2]+v*q[2]+(1-u-v)*d[2],i=y*W+x;if(z>=zbuf[i])continue;zbuf[i]=z;const j=i*4;for(let h=0;h<3;h++)pixels[j+h]=u*shades[0][h]+v*shades[1][h]+(1-u-v)*shades[2][h];pixels[j+3]=255;}}
- this.offctx.putImageData(this.image,0,0);ctx.drawImage(this.offscreen,0,0,c.width,c.height);
- const glow=(p,r,b)=>{const q=screen(p),rad=Math.max(5,r*c.height/this.distance);const gg=ctx.createRadialGradient(q[0],q[1],0,q[0],q[1],rad);gg.addColorStop(0,'rgba(255,232,194,'+b+')');gg.addColorStop(.26,'rgba(245,208,154,'+(b*.42)+')');gg.addColorStop(.60,'rgba(231,183,121,'+(b*.10)+')');gg.addColorStop(1,'rgba(255,168,66,0)');ctx.fillStyle=gg;ctx.fillRect(q[0]-rad,q[1]-rad,rad*2,rad*2);};ctx.globalCompositeOperation='screen';for(const w of windows){const facing=dot(w.n,norm(sub(this.eye,w.c)));if(facing>.08)glow(add(w.c,mul(w.n,.18)),w.id===this.highlight?1.58:1.34,(w.id===this.highlight?.28:.20)*Math.min(1,facing*1.7));}if(dot([0,0,1],norm(sub(this.eye,[0,1.5,1.3])))>.12)for(const q of this.torches)glow(q,1.05,.40);ctx.globalCompositeOperation='source-over';}
-
- render(t){if(!this.gl){this.renderSoftware(t);return;}const gl=this.gl,c=this.canvas;if(!c.width||!c.height)return;gl.viewport(0,0,c.width,c.height);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.enable(gl.DEPTH_TEST);gl.disable(gl.CULL_FACE);const aspect=c.width/c.height, fit=Math.max(1,1.06/aspect);const dist=this.distance*fit;this.eye=add(this.target,[Math.sin(this.angle)*dist*Math.cos(this.pitch),Math.sin(this.pitch)*dist,Math.cos(this.angle)*dist*Math.cos(this.pitch)]);this.matrix=mult(perspective(Math.PI/4,aspect,.07,70),view(this.eye,this.target));
- gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);this.drawGlow([{c:[0,-.055,0],u:[3.1,0,0],v:[0,0,2.5],b:.82}],1);this.drawGlow(windows.map(w=>({c:add([w.c[0],-.04,w.c[2]],mul(w.n,.72)),u:mul(w.u,1.20),v:mul(w.n,1.22),b:.11})),0);gl.depthMask(true);gl.disable(gl.BLEND);
- const p=this.main;gl.useProgram(p);this.bind(p,this.buf,[['p',3,0],['n',3,3],['c',3,6],['e',1,9],['k',1,10],['a',1,11]],12);gl.uniformMatrix4fv(gl.getUniformLocation(p,'m'),false,this.matrix);gl.uniform1f(gl.getUniformLocation(p,'selected'),windows.findIndex(w=>w.id===this.highlight)+1||-1);gl.uniform1f(gl.getUniformLocation(p,'time'),t);gl.drawArrays(gl.TRIANGLES,0,this.count);this.disable(p,['p','n','c','e','k','a']);
- // Camera-facing translucent light, depth-tested so that back windows stay hidden.
- const forward=norm(sub(this.eye,this.target)),right=norm(cross([0,1,0],forward)),up=norm(cross(forward,right));const sprites=[];for(const w of windows){const facing=dot(w.n,norm(sub(this.eye,w.c)));if(facing>.06){const sel=w.id===this.highlight;sprites.push({c:add(add(w.c,mul(w.n,.18)),mul(forward,.04)),u:mul(right,sel?1.18:1.05),v:mul(up,sel?1.28:1.14),b:(sel?.24:.18)*Math.min(1,facing*1.5)});}}if(dot([0,0,1],norm(sub(this.eye,[0,1.5,1.3])))>.12)for(const q of this.torches)sprites.push({c:add(q,[0,.04,.12]),u:mul(right,.62),v:mul(up,.82),b:.16+Math.sin(t*5+q[0])*.01});gl.enable(gl.BLEND);gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE,gl.ONE,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);this.drawGlow(sprites,0);gl.depthMask(true);gl.disable(gl.BLEND);
- }
-}
-window.MiFiLHouse=House;
+  function readAccessor(gltf,idx){
+    const {json,bin}=gltf,a=json.accessors[idx],v=json.bufferViews[a.bufferView];
+    const [getter,bytes]=types[a.componentType],count=numbers[a.type];
+    if(!getter||!count)throw new Error('Unsupported GLB accessor type');
+    const step=v.byteStride||bytes*count,begin=(v.byteOffset||0)+(a.byteOffset||0),reader=new DataView(bin);
+    const out=new (a.componentType===5126?Float32Array:Uint32Array)(a.count*count);
+    for(let i=0;i<a.count;i++)for(let j=0;j<count;j++)out[i*count+j]=reader[getter](begin+i*step+j*bytes,bytes>1);
+    return out;
+  }
+  function getCenterBounds(json){
+    let min=[Infinity,Infinity,Infinity],max=[-Infinity,-Infinity,-Infinity];
+    for(const m of json.meshes)for(const p of m.primitives){const a=json.accessors[p.attributes.POSITION];
+      if(a.min&&a.max)for(let k=0;k<3;k++){min[k]=Math.min(min[k],a.min[k]);max[k]=Math.max(max[k],a.max[k]);}
+    }
+    return {min,max,center:[(min[0]+max[0])/2,min[1],(min[2]+max[2])/2],size:max.map((v,k)=>v-min[k])};
+  }
+  class House {
+    constructor(canvas,opts={}){
+      this.canvas=canvas;this.opt=opts;this.active=true;this.ready=false;this.angle=Number.isFinite(opts.angle)?opts.angle:.31;
+      this.highlight=null;this.entering=false;this.motion=null;this.drag=null;this.hoverId=null;
+      this.curtainValues={livemo:0,'our-quest':0,feel:0};this.litWindowLevel=0;this.lastCurtainFrame=0;this.reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+      this.windows=new Map();this.projectBounds=new Map();this.lastRendered=null;this.pixelRatio=1;this.dirty=true;this.lastFrame=0;
+      this.gl=canvas.getContext('webgl',{alpha:true,antialias:true,depth:true,premultipliedAlpha:false,preserveDrawingBuffer:false});
+      if(!this.gl)throw new Error('WebGL unavailable');
+      this.program=makeProgram(this.gl);this.gl.useProgram(this.program);
+      this.loc={};for(const n of ['position','normal','uv'])this.loc[n]=this.gl.getAttribLocation(this.program,n);
+      for(const n of ['model','mvp','baseColor','emissive','usesTexture','diffuse','glow','curtain','curtainUvRange'])this.loc[n]=this.gl.getUniformLocation(this.program,n);
+      this.gl.uniform1i(this.loc.diffuse,0);
+      this.geometry=[];this.textureCache=new Map();this.viewTarget=[0,2.14,0];this.zoom=1;
+      this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(canvas);
+      this.addEvents();this.resize();
+      this.load();
+      this.loop=this.loop.bind(this);this.raf=requestAnimationFrame(this.loop);
+    }
+    async load(){try{
+      const gltf=await loadGLB('assets/MiFiL_Aframe_Dream_House_v11.glb?v=11');if(!this.active)return;
+      this.gltf=gltf;this.bounds=getCenterBounds(gltf.json);
+      // Slightly smaller framing so the house breathes inside the watercolor scene.
+      this.modelScale=4.2/Math.max(...this.bounds.size);
+      this.buildGeometry(gltf);
+      this.ready=true;this.canvas.dataset.renderer='glb-webgl';this.opt.onReady?.();
+    }catch(e){console.error('MiFiL GLB:',e);this.ready=false;this.opt.onLost?.(e);}}
+    buildGeometry(gltf){
+      const gl=this.gl,{json,bin}=gltf;
+      const materials=json.materials||[];
+      this.materials=materials.map(m=>{
+        const p=m.pbrMetallicRoughness||{};
+        return {name:m.name||'',color:p.baseColorFactor||[1,1,1,1],emissive:m.emissiveFactor||[0,0,0],transparent:m.alphaMode==='BLEND'||((p.baseColorFactor||[])[3]||1)<.99,texture:(p.baseColorTexture&&p.baseColorTexture.index)||null};
+      });
+      this.materials.forEach((mat,i)=>{const m=materials[i],p=m.pbrMetallicRoughness||{};mat.texture=p.baseColorTexture?.index??null;});
+      const texturePromises=[];
+      const bufferViews=json.bufferViews;
+      for(let i=0;i<(json.images||[]).length;i++){
+        const im=json.images[i];if(im.bufferView===undefined)continue;
+        const bv=bufferViews[im.bufferView],chunk=bin.slice(bv.byteOffset||0,(bv.byteOffset||0)+bv.byteLength);
+        const uri=URL.createObjectURL(new Blob([chunk],{type:im.mimeType||'image/png'}));
+        const texture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);
+        gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([255,255,255,255]));
+        gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.REPEAT);
+        this.textureCache.set(i,texture);
+        const image=new Image();
+        texturePromises.push(new Promise(resolve=>{
+          image.onload=()=>{if(!this.active){URL.revokeObjectURL(uri);resolve();return;}
+            gl.bindTexture(gl.TEXTURE_2D,texture);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);
+            gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);
+            gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);this.dirty=true;URL.revokeObjectURL(uri);resolve();};
+          image.onerror=()=>{URL.revokeObjectURL(uri);resolve();};
+          image.src=uri;
+        }));
+      }
+      this.textures=json.textures||[];
+      json.meshes.forEach((mesh,i)=>{
+        const node=(json.nodes||[]).find(n=>n.mesh===i);
+        const name=node?.name||mesh.name||`mesh_${i}`;
+        // Decorative loft railing intentionally omitted; new porch plant is part of the GLB.
+      // Remove pre-existing static fabric in the website viewer; the new curtains
+      // are a reversible glass overlay shown only on coming-soon preview.
+      if(name.startsWith('loft_rail__') || name.startsWith('curtains__') ||
+         name.startsWith('curtain_ties__') || name.startsWith('back_curtains__')) return;
+      for(const primitive of mesh.primitives){
+          if(primitive.mode!==undefined&&primitive.mode!==4)continue;
+          const pos=readAccessor(gltf,primitive.attributes.POSITION),uv=primitive.attributes.TEXCOORD_0!==undefined?readAccessor(gltf,primitive.attributes.TEXCOORD_0):null;
+          const indices=primitive.indices!==undefined?readAccessor(gltf,primitive.indices):Uint32Array.from({length:pos.length/3},(_,j)=>j);
+          // The Trimesh GLB omits vertex normals; reconstruct smooth vertex normals in one pass.
+          const normals=new Float32Array(pos.length);
+          for(let j=0;j<indices.length;j+=3){const a=indices[j],b=indices[j+1],c=indices[j+2],ax=pos[a*3],ay=pos[a*3+1],az=pos[a*3+2],
+            bx=pos[b*3],by=pos[b*3+1],bz=pos[b*3+2],cx=pos[c*3],cy=pos[c*3+1],cz=pos[c*3+2];
+            const e1=[bx-ax,by-ay,bz-az],e2=[cx-ax,cy-ay,cz-az],n=cross(e1,e2);
+            for(const index of [a,b,c])for(let k=0;k<3;k++)normals[index*3+k]+=n[k];
+          }
+          for(let j=0;j<normals.length;j+=3){let n=norm([normals[j],normals[j+1],normals[j+2]]);normals[j]=n[0];normals[j+1]=n[1];normals[j+2]=n[2];}
+          // Interleaved and non-indexed is compatible with WebGL 1 on mobile.
+          const packed=new Float32Array(indices.length*8);
+          for(let j=0;j<indices.length;j++){
+            const v=indices[j],t=j*8;
+            packed[t]=pos[v*3];packed[t+1]=pos[v*3+1];packed[t+2]=pos[v*3+2];
+            packed[t+3]=normals[v*3];packed[t+4]=normals[v*3+1];packed[t+5]=normals[v*3+2];
+            packed[t+6]=uv?uv[v*2]:0;packed[t+7]=uv?uv[v*2+1]:0;
+          }
+          const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,packed,gl.STATIC_DRAW);
+          const mat=this.materials[primitive.material]||this.materials[0];
+          const curtainMatch=name.match(/^PROJECT_(.+?)_glass__/);
+          const curtainId=curtainMatch?.[1]?.replace(/_/g,'-')||null;
+          let uMin=0,uMax=1;
+          if(uv?.length){uMin=Infinity;uMax=-Infinity;for(let k=0;k<uv.length;k+=2){uMin=Math.min(uMin,uv[k]);uMax=Math.max(uMax,uv[k]);}}
+          this.geometry.push({name,buffer,count:indices.length,material:mat,curtainId,uvRange:[uMin,uMax]});
+          const match=name.match(/^PROJECT_(.+?)_(?:glass|frame|mullions|sill)__/);
+          if(match){const id=match[1].replace(/_/g,'-');if(ids.includes(id)){
+            const a=json.accessors[primitive.attributes.POSITION];if(!this.projectBounds.has(id))this.projectBounds.set(id,{min:[Infinity,Infinity,Infinity],max:[-Infinity,-Infinity,-Infinity],glass:null});
+            const box=this.projectBounds.get(id);
+            for(let k=0;k<3;k++){box.min[k]=Math.min(box.min[k],a.min[k]);box.max[k]=Math.max(box.max[k],a.max[k]);}
+            if(name.includes('_glass__'))box.glass={min:a.min,max:a.max};
+          }}
+        }
+      });
+      for(const id of ids){const b=this.projectBounds.get(id);if(!b)continue;const rect=b.glass||b;
+        this.windows.set(id,{id,angle:angles[id],center:rect.min.map((v,k)=>(v+rect.max[k])/2),bounds:rect});}
+      this.geometry.sort((a,b)=>Number(a.material.transparent)-Number(b.material.transparent));
+      Promise.all(texturePromises).then(()=>{this.texturesReady=true;this.dirty=true;});
+    }
+    resize(){const r=this.canvas.getBoundingClientRect();if(!r.width||!r.height)return;
+      this.pixelRatio=Math.min(window.devicePixelRatio||1,1.7);const w=Math.max(2,Math.round(r.width*this.pixelRatio)),h=Math.max(2,Math.round(r.height*this.pixelRatio));
+      if(this.canvas.width!==w||this.canvas.height!==h){this.canvas.width=w;this.canvas.height=h;this.dirty=true;}
+      this.gl.viewport(0,0,w,h);
+    }
+    getMatrices(){const w=this.canvas.width,h=this.canvas.height;
+      const model=mul(mul(turn(this.angle),scale(this.modelScale)),translate(...this.bounds.center.map(v=>-v)));
+      const dist=8.35*Math.max(1,1.02/(w/h))*this.zoom;
+      const eye=[0,2.46,dist],target=this.viewTarget;
+      const proj=perspective(PI/4.35,w/h,0.10,90);
+      const camera=view(eye,target);
+      const mvp=mul(mul(proj,camera),model);
+      return {model,mvp,eye};
+    }
+    screen(p){if(!this.lastRendered)return {x:0,y:0,z:2};
+      const q=transform(this.lastRendered.mvp,p);const r=this.canvas.getBoundingClientRect();
+      return {x:(q[0]/q[3]+1)*r.width/2,y:(1-q[1]/q[3])*r.height/2,z:q[2]/q[3]};
+    }
+    visibleWindows(){if(!this.ready)return [];
+      const r=this.canvas.getBoundingClientRect(),vis=[];
+      for(const w of this.windows.values()){
+        const d=Math.abs(shortest(this.angle,w.angle));if(d>1.12)continue;
+        const p=this.screen(w.center);if(p.z>1||p.z<-.9||p.x<0||p.y<0||p.x>r.width||p.y>r.height)continue;
+        vis.push({id:w.id,x:p.x,y:p.y,facing:1-d/PI,score:d});
+      }
+      return vis.sort((a,b)=>a.score-b.score);
+    }
+    hit(x,y){if(!this.ready)return null;
+      const r=this.canvas.getBoundingClientRect();let found=null,score=Infinity;
+      for(const w of this.windows.values()){
+        if(Math.abs(shortest(this.angle,w.angle))>1.16)continue;
+        const b=w.bounds,pts=[];
+        for(const xx of [b.min[0],b.max[0]])for(const yy of [b.min[1],b.max[1]])for(const zz of [b.min[2],b.max[2]])pts.push(this.screen([xx,yy,zz]));
+        const minx=Math.min(...pts.map(p=>p.x)),maxx=Math.max(...pts.map(p=>p.x)),miny=Math.min(...pts.map(p=>p.y)),maxy=Math.max(...pts.map(p=>p.y));
+        if(x<minx-6||x>maxx+6||y<miny-8||y>maxy+8)continue;
+        const dist=Math.hypot(x-(minx+maxx)/2,y-(miny+maxy)/2);
+        if(dist<score){score=dist;found=w;}
+      }
+      return found;
+    }
+    hover(w){const id=w?.id||null;if(this.hoverId===id)return;this.hoverId=id;this.dirty=true;this.canvas.classList.toggle('window-hover',!!id);
+      if(id){const p=this.screen(w.center);this.opt.onHover?.(id,{x:p.x,y:p.y});}
+      else this.opt.onHover?.(null);
+    }
+    setHighlight(id){this.highlight=id||null;this.dirty=true;}
+    rotate(delta){if(this.entering)return;this.hover(null);this.rotateToAngle(this.angle+delta,520);}
+    rotateTo(id){if(this.entering)return false;const w=this.windows.get(id);if(!w)return false;this.rotateToAngle(this.angle+shortest(this.angle,w.angle),this.reduce?1:760);this.highlight=id;return true;}
+    rotateToAngle(to,duration){this.motion={from:this.angle,to,start:performance.now(),duration,enter:false};this.dirty=true;}
+    enter(id,done){if(id!=='playable-letter')return false;const w=this.windows.get(id);if(!w)return false;
+      if(this.reduce){done?.();return true;}this.entering=true;this.hover(null);
+      this.motion={from:this.angle,to:this.angle+shortest(this.angle,w.angle),start:performance.now(),duration:1180,enter:true,done};return true;}
+    addEvents(){const canvas=this.canvas;
+      canvas.addEventListener('pointerdown',e=>{if(e.button!==0||this.entering)return;this.motion=null;this.drag={id:e.pointerId,x:e.clientX,y:e.clientY,last:e.clientX,moved:false};});
+      canvas.addEventListener('pointermove',e=>{if(this.entering)return;const d=this.drag;
+        if(d&&d.id===e.pointerId){if(!d.moved&&Math.abs(e.clientX-d.x)>7&&Math.abs(e.clientX-d.x)>Math.abs(e.clientY-d.y)){d.moved=true;canvas.setPointerCapture(e.pointerId);canvas.classList.add('dragging');}
+          if(d.moved){this.angle-=(e.clientX-d.last)*.009;this.highlight=null;this.dirty=true;this.hover(null);}
+          d.last=e.clientX;
+        }
+        if(!d||!d.moved){const rect=canvas.getBoundingClientRect();this.hover(this.hit(e.clientX-rect.left,e.clientY-rect.top));}
+      });
+      canvas.addEventListener('pointerup',e=>{const d=this.drag;if(!d||d.id!==e.pointerId)return;this.drag=null;canvas.classList.remove('dragging');
+        if(!d.moved&&Math.hypot(e.clientX-d.x,e.clientY-d.y)<10){const r=canvas.getBoundingClientRect(),w=this.hit(e.clientX-r.left,e.clientY-r.top);if(w)this.opt.onSelect?.(w.id);}
+      });
+      const clear=()=>{this.drag=null;canvas.classList.remove('dragging');this.hover(null);};
+      canvas.addEventListener('pointercancel',clear);
+      canvas.addEventListener('pointerleave',()=>{if(!this.drag?.moved)this.hover(null);});
+      canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();this.active=false;this.opt.onLost?.(new Error('WebGL context lost'));});
+    }
+    render(){if(!this.ready)return;
+      const gl=this.gl;const {model,mvp}=this.getMatrices();this.lastRendered={model,mvp};
+      gl.viewport(0,0,this.canvas.width,this.canvas.height);
+      gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+      gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.disable(gl.CULL_FACE);
+      gl.useProgram(this.program);gl.uniformMatrix4fv(this.loc.model,false,model);gl.uniformMatrix4fv(this.loc.mvp,false,mvp);
+      gl.activeTexture(gl.TEXTURE0);
+      let blending=false;
+      for(const mesh of this.geometry){const mat=mesh.material;
+        if(mat.transparent!==blending){blending=mat.transparent;if(blending){gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);}else{gl.disable(gl.BLEND);gl.depthMask(true);}}
+        gl.bindBuffer(gl.ARRAY_BUFFER,mesh.buffer);
+        gl.enableVertexAttribArray(this.loc.position);gl.vertexAttribPointer(this.loc.position,3,gl.FLOAT,false,32,0);
+        gl.enableVertexAttribArray(this.loc.normal);gl.vertexAttribPointer(this.loc.normal,3,gl.FLOAT,false,32,12);
+        gl.enableVertexAttribArray(this.loc.uv);gl.vertexAttribPointer(this.loc.uv,2,gl.FLOAT,false,32,24);
+        gl.uniform4fv(this.loc.baseColor,mat.color);gl.uniform3fv(this.loc.emissive,mat.emissive);
+        const tid=mat.texture!==null?this.textures[mat.texture]?.source:null;
+        const texture=tid!==undefined&&tid!==null?this.textureCache.get(tid):null;
+        gl.uniform1f(this.loc.usesTexture,texture?1:0);
+        if(texture)gl.bindTexture(gl.TEXTURE_2D,texture);
+        const chosen=this.hoverId||this.highlight;
+        const releasedWindow = chosen === 'playable-letter' && mesh.name.startsWith('PROJECT_playable_letter_');
+        const glass = mesh.name.startsWith('PROJECT_playable_letter_glass__');
+        // Light up only the live project. Closed projects retain their curtains.
+        gl.uniform1f(this.loc.glow, releasedWindow ? this.litWindowLevel * (glass ? .95 : .18) : 0);
+        const curtainValue=mesh.curtainId ? (this.curtainValues[mesh.curtainId]||0) : 0;
+        gl.uniform1f(this.loc.curtain,curtainValue);
+        gl.uniform2fv(this.loc.curtainUvRange,mesh.uvRange);
+        gl.drawArrays(gl.TRIANGLES,0,mesh.count);
+      }
+      gl.depthMask(true);gl.disable(gl.BLEND);
+    }
+    loop(now){if(!this.active)return;
+      let curtainsMoving=false;
+      const dt=Math.min(0.10,Math.max(0,(now-(this.lastCurtainFrame||now))/1000));
+      this.lastCurtainFrame=now;
+      const curtainTarget=this.hoverId||this.highlight;
+      const lightGoal = curtainTarget === 'playable-letter' && !this.entering ? 1 : 0;
+      const oldLight = this.litWindowLevel;
+      const lightNext = this.reduce ? lightGoal : oldLight + (lightGoal - oldLight) * Math.min(1, dt * 5.5);
+      this.litWindowLevel = Math.abs(lightNext - lightGoal) < .004 ? lightGoal : lightNext;
+      const glowMoving = Math.abs(this.litWindowLevel - oldLight) > .002;
+      if (glowMoving) this.dirty = true;
+      for(const id of Object.keys(this.curtainValues)){
+        const goal=curtainTarget===id && !this.entering?1:0;
+        const old=this.curtainValues[id];
+        const next=old+(goal-old)*Math.min(1,dt*5.2);
+        this.curtainValues[id]=Math.abs(next-goal)<.004?goal:next;
+        if(Math.abs(old-this.curtainValues[id])>.002){curtainsMoving=true;this.dirty=true;}
+      }
+      if(this.motion){const m=this.motion,t=clamp((now-m.start)/m.duration,0,1);this.angle=m.from+(m.to-m.from)*smooth(t);
+        if(m.enter){this.zoom=1-.36*smooth(clamp((t-.35)/.65,0,1));if(t>.77&&!m.notified){m.notified=true;this.opt.onEnter?.();}}
+        if(t>=1){this.motion=null;if(m.enter)m.done?.();}
+      }
+      // Redraw at most about 30 fps while moving, then idle. Keep mobile GPUs cool.
+      const activeMotion=!!this.motion||!!this.drag?.moved||curtainsMoving||glowMoving;
+      if(this.ready&&(this.dirty||((activeMotion||this.entering)&&now-this.lastFrame>33)||now-this.lastFrame>1500)){
+        this.render();this.opt.onVisibleWindows?.(this.visibleWindows());
+        this.lastFrame=now;this.dirty=false;
+      }
+      this.raf=requestAnimationFrame(this.loop);
+    }
+    destroy(){this.active=false;cancelAnimationFrame(this.raf);this.resizeObserver.disconnect();for(const mesh of this.geometry)this.gl.deleteBuffer(mesh.buffer);
+      for(const tex of this.textureCache.values())this.gl.deleteTexture(tex);this.gl.deleteProgram(this.program);}
+  }
+  window.MiFiLHouse=House;
 })();

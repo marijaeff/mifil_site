@@ -346,3 +346,127 @@
     transition: opacity .2s ease;
   }
 }
+
+/* MiFiL GLB v9: hide the fallback once the actual 3D model has loaded. */
+.home-body [hidden] { display: none !important; }
+.home-body .scene-fallback img { width: min(93%, 650px); object-fit: contain; }
+.home-body .scene-pager { display: grid; gap: 9px; justify-items: center; }
+.home-body .scene-progress { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.home-body .scene-dot {
+  border: 1px solid #779091; width: 11px; height: 11px; border-radius: 50%;
+  background: rgba(247,220,186,.25); cursor: pointer; padding: 0;
+  transition: background .2s ease, border-color .2s ease, transform .2s ease;
+}
+.home-body .scene-dot.is-active {
+  background: #bb8250; border-color: #bb8250; transform: scale(1.18);
+}
+.home-body .scene-dot:hover,
+.home-body .scene-dot:focus-visible { background: #d29f70; border-color: #9b714a; }
+.home-body .project-list .project-entry { display: flex; align-items: center; gap: 12px; position: relative; }
+.home-body .project-icon {
+  flex: 0 0 40px; width: 40px; height: 40px; overflow: hidden;
+  border-radius: 10px; border: 1px solid rgba(89,76,63,.16);
+}
+.home-body .project-icon img { width: 100%; height: 100%; object-fit: cover; }
+.home-body .project-copy { display: grid; min-width: 0; flex: 1; }
+.home-body .project-name { display: block; white-space: nowrap; }
+.home-body .project-description {
+  font-size: 11.5px; line-height: 1.4; color: #65747a;
+  max-height: 0; opacity: 0; overflow: hidden;
+  transition: opacity .18s ease, max-height .22s ease;
+}
+.home-body .project-entry:hover .project-description,
+.home-body .project-entry:focus-visible .project-description,
+.home-body .project-entry.is-active .project-description { max-height: 65px; opacity: 1; }
+.home-body .project-list .project-entry .arrow { flex: 0 0 auto; }
+@media (max-width: 760px) {
+  .home-body .project-description { max-height: 44px; opacity: 1; }
+  .home-body .project-list .project-entry { min-height: 68px; }
+  .home-body .scene-pager { gap: 8px; }
+}
+
+/* v12: A-frame fit, real mobile watercolor layer, quiet project states. */
+.home-body .scene { transform: translateY(-57px); }
+.home-body .scene-pager { gap: 0; }
+.home-body .scene-night { display: none; }
+.home-body .scene-stage { isolation: isolate; }
+.home-body .project-list button.project-entry {
+  min-height: 58px; padding-block: 15px; color: #1e4653; font-size: clamp(17px, 1.62vw, 22px);
+  appearance: none; width: 100%; border: 0; border-bottom: 1px solid rgba(90,83,73,.2);
+  padding-inline: 0; margin: 0; background: none; text-align: start;
+  font: inherit; cursor: pointer;
+}
+.home-body .project-list .project-entry {
+  position: relative; gap: 11px; transition: color .2s ease, border-color .2s ease;
+}
+.home-body .project-list .project-icon {
+  background: none; border: none; border-radius: 0; overflow: visible;
+  flex: 0 0 45px; width: 45px; height: 45px;
+}
+.home-body .project-list .project-icon img { width: 100%; height: 100%; object-fit: contain; }
+.home-body .project-list .project-name { white-space: nowrap; }
+.home-body .project-list .project-entry .status-soon {
+  flex: 0 0 auto; color: #9c7858; font-size: 11px; letter-spacing: .01em;
+  border: 1px solid rgba(157, 110, 69, .26); padding: 4px 8px;
+  border-radius: 999px; background: rgba(253,236,213,.3);
+}
+.home-body .project-list .project-entry.is-unreleased .project-name { color: #355763; }
+.home-body .project-list .project-entry.is-unreleased:hover .project-name,
+.home-body .project-list .project-entry.is-unreleased:focus-visible .project-name { color: #a87349; }
+.home-body .project-list .project-entry:focus-visible { outline: 2px solid #9a6b47; outline-offset: 3px; }
+.home-body .project-list .project-copy { flex: 1 1 0; }
+.home-body .project-list .project-description { white-space: normal; }
+.home-body .project-list .project-entry .arrow { flex: 0 0 auto; }
+@media (max-width: 760px) {
+  .home-body .scene { transform: translateY(-7px); }
+  .home-body .scene-stage { isolation: isolate; }
+  .home-body .scene-stage::before { display: none !important; }
+  .home-body .scene-night {
+    display: block !important; position: absolute; z-index: 0; pointer-events: none;
+    width: clamp(620px, 205vw, 1030px); height: auto; aspect-ratio: 1160 / 780;
+    left: 50%; top: 48%; transform: translate(-50%,-50%);
+    background: url('night-watercolor-mobile.webp') center / 100% 100% no-repeat;
+  }
+  .home-body #house-canvas { z-index: 2; }
+  .home-body .scene-fallback { z-index: 1; }
+  .home-body .window-names:not([hidden]) { z-index: 4; }
+  .home-body .project-list .project-entry { min-height: 66px; }
+  .home-body .project-list .project-entry .status-soon { font-size: 10px; padding-inline: 7px; }
+  .home-body .project-list .project-name { font-size: 18px; }
+}
+@media (max-width: 380px) {
+  .home-body .project-list .project-icon { flex-basis: 39px; width: 39px; height: 39px; }
+  .home-body .project-list .project-entry { gap: 7px; }
+  .home-body .project-list .project-name { font-size: 16px; }
+}
+
+/* v14: subtle light around the published project's real 3D window. */
+.home-body .project-window-glow {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  top: 50%;
+  width: clamp(80px, 11vw, 145px);
+  aspect-ratio: 1 / 1.13;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center,
+    rgba(255, 226, 155, .41) 0%,
+    rgba(255, 204, 126, .23) 30%,
+    rgba(255, 185, 95, .08) 53%,
+    rgba(255, 176, 94, 0) 74%);
+  filter: blur(7px);
+  mix-blend-mode: screen;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  transition: opacity .32s ease;
+}
+.home-body .project-window-glow.is-visible { opacity: .67; }
+.home-body .scene-stage.is-entering .project-window-glow { opacity: 0; }
+@media (max-width: 760px) {
+  .home-body .project-window-glow { width: clamp(64px, 20vw, 92px); filter: blur(5px); }
+  .home-body .project-window-glow.is-visible { opacity: .62; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-body .project-window-glow { transition: none; }
+}

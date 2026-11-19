@@ -12,11 +12,13 @@
 
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="assets/watercolor-home.css">
+    <link rel="stylesheet" href="assets/watercolor-home.css?v=14">
 
     <script defer src="texts.js"></script>
-    <script defer src="js/house.js"></script>
-    <script defer src="script.js"></script>
+    <script defer src="assets/project-teasers.js?v=9"></script>
+    <script defer src="assets/project-status.js?v=12"></script>
+    <script defer src="js/house.js?v=14"></script>
+    <script defer src="script.js?v=14"></script>
   </head>
   <body class="home-body">
     <a class="skip" href="#worlds" data-i="skip">Skip to projects</a>
@@ -38,35 +40,37 @@
             <h1 id="worlds-title" data-i="worlds">Worlds</h1>
 
             <nav class="project-list" aria-label="Projects" data-label="worlds">
-              <a data-project="livemo" href="page.html?view=livemo">
-                <span>livEmo</span>
+              <a data-project="playable-letter" class="project-entry" href="playable-letter/">
+                <span class="project-icon"><img src="assets/icon-playable-letter.png?v=13" alt="" width="44" height="44"></span>
+                <span class="project-copy"><span class="project-name">Playable Letter</span><span class="project-description" data-teaser="playable-letter"></span></span>
                 <span class="arrow" aria-hidden="true">↗</span>
               </a>
-
-              <a data-project="our-quest" href="page.html?view=our-quest">
-                <span>Our Quest</span>
-                <span class="arrow" aria-hidden="true">↗</span>
-              </a>
-
-              <a data-project="feel" href="page.html?view=feel">
-                <span>FEEL</span>
-                <span class="arrow" aria-hidden="true">↗</span>
-              </a>
-
-              <a data-project="playable-letter" href="playable-letter/">
-                <span>Playable Letter</span>
-                <span class="arrow" aria-hidden="true">↗</span>
-              </a>
+              <button type="button" data-project="livemo" class="project-entry is-unreleased" aria-disabled="true">
+                <span class="project-icon"><img src="assets/icon-livemo.png?v=13" alt="" width="44" height="44"></span>
+                <span class="project-copy"><span class="project-name">livEmo</span><span class="project-description" data-teaser="livemo"></span></span>
+                <span class="status-soon" data-coming-soon></span>
+              </button>
+              <button type="button" data-project="our-quest" class="project-entry is-unreleased" aria-disabled="true">
+                <span class="project-icon"><img src="assets/icon-our-quest.png?v=13" alt="" width="44" height="44"></span>
+                <span class="project-copy"><span class="project-name">Our Quest</span><span class="project-description" data-teaser="our-quest"></span></span>
+                <span class="status-soon" data-coming-soon></span>
+              </button>
+              <button type="button" data-project="feel" class="project-entry is-unreleased" aria-disabled="true">
+                <span class="project-icon"><img src="assets/icon-feel.png?v=13" alt="" width="44" height="44"></span>
+                <span class="project-copy"><span class="project-name">FEEL</span><span class="project-description" data-teaser="feel"></span></span>
+                <span class="status-soon" data-coming-soon></span>
+              </button>
             </nav>
           </div>
         </section>
 
         <section class="scene" aria-label="Interactive house" data-label="house">
           <div class="scene-stage" id="stage">
+            <div class="scene-night" aria-hidden="true"></div>
             <div class="scene-halo"></div>
 
             <div class="scene-fallback" id="fallback">
-              <img src="assets/house-fallback.svg" alt="" width="600" height="500">
+              <img src="assets/house-fallback.webp" alt="" width="600" height="500">
             </div>
 
             <canvas id="house-canvas" aria-hidden="true"></canvas>
@@ -74,38 +78,27 @@
 
             <!-- Mobile: labels follow the actual visible 3D windows. -->
             <div class="window-names" id="window-names" hidden>
-              <a class="window-name" data-window-project="livemo" href="page.html?view=livemo" hidden>livEmo</a>
-              <a class="window-name" data-window-project="our-quest" href="page.html?view=our-quest" hidden>Our Quest</a>
-              <a class="window-name" data-window-project="feel" href="page.html?view=feel" hidden>FEEL</a>
+              <span class="window-name is-unreleased" data-window-project="livemo" hidden>livEmo</span>
+              <span class="window-name is-unreleased" data-window-project="our-quest" hidden>Our Quest</span>
+              <span class="window-name is-unreleased" data-window-project="feel" hidden>FEEL</span>
               <a class="window-name" data-window-project="playable-letter" href="playable-letter/" hidden>Playable Letter</a>
             </div>
           </div>
 
           <div class="scene-controls" id="scene-controls" hidden>
-            <button
-              class="rotate"
-              type="button"
-              id="rotate-left"
-              data-label="left"
-              aria-label="Rotate left"
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="m12 6-6 6 6 6M6 12h12"></path>
-              </svg>
+            <button class="rotate" type="button" id="rotate-left" data-label="left" aria-label="Rotate left">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 6-6 6 6 6M6 12h12"></path></svg>
             </button>
-
-            <span class="scene-hint" data-i="rotate">Drag to turn · choose a window</span>
-
-            <button
-              class="rotate"
-              type="button"
-              id="rotate-right"
-              data-label="right"
-              aria-label="Rotate right"
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="m12 6 6 6-6 6m6-6H6"></path>
-              </svg>
+            <div class="scene-pager">
+              <div class="scene-progress" role="group" aria-label="Project windows">
+                <button class="scene-dot" data-face="livemo" aria-label="livEmo" title="livEmo"></button>
+                <button class="scene-dot" data-face="our-quest" aria-label="Our Quest" title="Our Quest"></button>
+                <button class="scene-dot" data-face="feel" aria-label="FEEL" title="FEEL"></button>
+                <button class="scene-dot" data-face="playable-letter" aria-label="Playable Letter" title="Playable Letter"></button>
+              </div>
+            </div>
+            <button class="rotate" type="button" id="rotate-right" data-label="right" aria-label="Rotate right">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 6 6 6-6 6m6-6H6"></path></svg>
             </button>
           </div>
 

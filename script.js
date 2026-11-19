@@ -4,6 +4,9 @@
   const dictionary = window.mifilContent;
   const languages = window.MiFiLLanguages;
   const projects = window.MiFiLProjects;
+  const availability = window.MiFiLProjectAvailability || { 'playable-letter': true };
+  const isReleased = (id) => availability[id] === true;
+  const soonLabel = () => window.MiFiLComingSoon?.[language] || window.MiFiLComingSoon?.en || 'Coming soon';
 
   const $ = (id) => document.getElementById(id);
 
@@ -45,10 +48,17 @@
   let house = null;
   let leaving = false;
   let navTimer = null;
+  let previewTimer = null;
 
   const langSelect = $('language');
   const transition = $('transition');
   const stage = $('stage');
+  // A restrained light halo follows the actual 3D position of the active window.
+  // Kept separate from WebGL so it remains soft without expensive postprocessing.
+  const windowGlow = document.createElement('div');
+  windowGlow.className = 'project-window-glow';
+  windowGlow.setAttribute('aria-hidden', 'true');
+  stage?.appendChild(windowGlow);
   const windowNames = $('window-names');
   const mobileLabels = [...document.querySelectorAll('[data-window-project]')];
   const mobileMedia = matchMedia('(max-width: 760px)');
@@ -98,6 +108,15 @@
       element.setAttribute('aria-label', text(element.dataset.label));
     });
 
+    document.querySelectorAll('[data-teaser]').forEach((element) => {
+      const id = element.dataset.teaser;
+      element.textContent = window.MiFiLTeasers?.[lang]?.[id] || window.MiFiLTeasers?.en?.[id] || '';
+    });
+
+    document.querySelectorAll('[data-coming-soon]').forEach((el) => { el.textContent = soonLabel(); });
+    document.querySelectorAll('.window-name.is-unreleased').forEach((el) => {
+      el.setAttribute('aria-label', `${projects[el.dataset.windowProject]?.name || ''}: ${soonLabel()}`);
+    });
     renderDetail();
   }
 
@@ -113,6 +132,10 @@
       ? candidate
       : 'about';
 
+    if (projects[id] && !isReleased(id)) {
+      location.replace(new URL('index.html#worlds', document.baseURI).href);
+      return;
+    }
     document.body.dataset.view = id;
 
     const project = projects[id];
@@ -217,6 +240,32 @@
   // Show project names close to their windows while the user rotates the house.
   // On desktop the existing hover tooltip continues to work unchanged.
   function updateVisibleWindowNames(visible) {
+    const chosen = house?.hoverId || house?.highlight;
+    const lit = !leaving && chosen === 'playable-letter'
+      ? visible.find((item) => item.id === 'playable-letter') : null;
+    if (lit) {
+      windowGlow.style.left = `${lit.x}px`;
+      windowGlow.style.top = `${lit.y}px`;
+      windowGlow.classList.add('is-visible');
+    } else {
+      windowGlow.classList.remove('is-visible');
+    }
+    if (house?.ready) {
+      const dots = document.querySelectorAll('[data-face]');
+      let best = null;
+      let bestDiff = Infinity;
+      for (const dot of dots) {
+        const target = { livemo: 0, 'our-quest': -Math.PI / 2, feel: Math.PI, 'playable-letter': Math.PI / 2 }[dot.dataset.face];
+        const raw = (target - house.angle + Math.PI) % (2 * Math.PI);
+        const diff = Math.abs(((raw + 2 * Math.PI) % (2 * Math.PI)) - Math.PI);
+        if (diff < bestDiff) { bestDiff = diff; best = dot.dataset.face; }
+      }
+      dots.forEach((dot) => {
+        const active = dot.dataset.face === best;
+        dot.classList.toggle('is-active', active);
+        dot.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+    }
     if (!windowNames || leaving || !mobileMedia.matches) {
       if (windowNames) windowNames.hidden = true;
       return;
@@ -230,6 +279,8 @@
       const item = byId.get(label.dataset.windowProject);
       label.hidden = !item;
       if (!item) continue;
+      const name = projects[label.dataset.windowProject]?.name || '';
+      label.textContent = name + (isReleased(label.dataset.windowProject) ? '' : ` · ${soonLabel()}`);
 
       // The badge sits just above its window, not over the glowing panes.
       label.style.left = `${Math.max(65, Math.min(bounds.width - 65, item.x))}px`;
@@ -242,11 +293,13 @@
     label.addEventListener('click', (event) => {
       if (!house || leaving || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       event.preventDefault();
-      go(label.dataset.windowProject);
+      if (isReleased(label.dataset.windowProject)) go(label.dataset.windowProject);
+      else preview(label.dataset.windowProject, true);
     });
   });
 
   function showFallback() {
+    windowGlow.classList.remove('is-visible');
     canvas.classList.remove('ready');
     $('fallback').hidden = false;
     $('scene-controls').hidden = true;
@@ -258,14 +311,32 @@
     if (leaving) {
       const active = links.find((link) => link.classList.contains('is-active'));
       if (active) {
-        location.assign(active.href);
+        if (isReleased(active.dataset.project)) location.assign(active.href);
       }
+    }
+  }
+
+  function preview(id, persistent = false) {
+    if (!house || leaving) return;
+    setActive(id);
+    house.setHighlight(id);
+    house.rotateTo(id);
+    $('scene-status').textContent = isReleased(id) ? projects[id].name : `${projects[id].name}: ${soonLabel()}`;
+    if (persistent) {
+      clearTimeout(previewTimer);
+      previewTimer = setTimeout(() => {
+        if (!leaving) house?.setHighlight(null);
+      }, 2800);
     }
   }
 
   function go(id) {
     const link = links.find((item) => item.dataset.project === id);
     if (!link || leaving) {
+      return;
+    }
+    if (!isReleased(id)) {
+      preview(id, true);
       return;
     }
 
@@ -275,6 +346,7 @@
     }
 
     leaving = true;
+    windowGlow.classList.remove('is-visible');
     setActive(id);
     clearLabel();
     stage?.classList.add('is-entering');
@@ -314,6 +386,12 @@
 
     house = new window.MiFiLHouse(canvas, {
       angle: previous === null ? undefined : Number(previous),
+      onReady() {
+        canvas.classList.add('ready');
+        $('fallback').hidden = true;
+        $('scene-controls').hidden = false;
+        $('fallback-hint').hidden = true;
+      },
       onSelect: go,
       onVisibleWindows: updateVisibleWindowNames,
       onHover(id, point) {
@@ -325,7 +403,7 @@
         const tip = $('window-label');
 
         if (id && point && tip) {
-          tip.textContent = projects[id].name;
+          tip.textContent = projects[id].name + (isReleased(id) ? '' : ` · ${soonLabel()}`);
           tip.style.left = `${point.x}px`;
           tip.style.top = `${point.y}px`;
           tip.hidden = false;
@@ -342,9 +420,6 @@
       onLost: showFallback,
     });
 
-    canvas.classList.add('ready');
-    $('fallback').hidden = true;
-    $('scene-controls').hidden = false;
   } catch (error) {
     console.warn('MiFiL house fallback:', error);
     showFallback();
@@ -354,6 +429,7 @@
     const id = link.dataset.project;
 
     link.addEventListener('click', (event) => {
+      if (!isReleased(id)) { event.preventDefault(); preview(id, true); return; }
       if (!house || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
         return;
       }
@@ -368,12 +444,17 @@
       }
       setActive(id);
       house?.setHighlight(id);
+      clearTimeout(previewTimer);
+      previewTimer = setTimeout(() => {
+        if (!leaving && !mobileMedia.matches) house?.rotateTo(id);
+      }, 230);
     };
 
     const stop = () => {
       if (leaving) {
         return;
       }
+      clearTimeout(previewTimer);
       setActive(null);
       house?.setHighlight(null);
     };
@@ -382,6 +463,14 @@
     link.addEventListener('mouseleave', stop);
     link.addEventListener('focus', start);
     link.addEventListener('blur', stop);
+  });
+
+  document.querySelectorAll('[data-face]').forEach((dot) => {
+    dot.addEventListener('click', () => {
+      const id = dot.dataset.face;
+      if (!isReleased(id)) preview(id, true);
+      else { house?.rotateTo(id); house?.setHighlight(id); }
+    });
   });
 
   $('rotate-left').addEventListener('click', () => house?.rotate(-Math.PI / 2));

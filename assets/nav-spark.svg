@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 64">
+ <defs><radialGradient id="night"><stop stop-color="#355d65"/><stop offset="1" stop-color="#102b40"/></radialGradient><radialGradient id="light"><stop stop-color="#ffe0a0"/><stop offset=".36" stop-color="#e9be80"/><stop offset="1" stop-color="#e9be80" stop-opacity="0"/></radialGradient></defs>
+ <rect width="80" height="64" rx="9" fill="url(#night)"/>
+ <path d="M15 13V52m10-39v39m10-39v39m10-39v39m10-39v39m10-39v39M15 13h50M15 23h50M15 33h50M15 43h50M15 53h50" stroke="#82a0a0" stroke-opacity=".17" stroke-width=".75"/>
+ <g fill="#c5d1c5" opacity=".52"><circle cx="15" cy="13" r="1.2"/><circle cx="35" cy="23" r="1"/><circle cx="55" cy="13" r="1"/><circle cx="65" cy="33" r="1"/><circle cx="25" cy="43" r="1"/><circle cx="45" cy="53" r="1"/><circle cx="65" cy="53" r="1"/><circle cx="15" cy="53" r="1"/><circle cx="55" cy="43" r="1"/></g>
+ <circle cx="40" cy="33" r="20" fill="url(#light)"/><circle cx="40" cy="33" r="4.1" fill="#ffeac0"/><circle cx="40" cy="33" r="2" fill="#fff8dc"/>
+ <path d="M13 56c9 3 19 4 28 2 10-3 19-2 26 1" stroke="#d1b18c" opacity=".36" fill="none"/>
+</svg>
