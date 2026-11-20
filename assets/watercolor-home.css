@@ -46,8 +46,15 @@
   min-height: 122px;
 }
 
+/* Keep the logo in front of the watercolor, including on narrow phones. */
+.home-body .site-header {
+  position: relative;
+  z-index: 6;
+}
+
 .home-body .brand img {
   width: 140px;
+  height: auto;
 }
 
 .home-body .header-link {
@@ -199,11 +206,13 @@
   }
 
   .home-body .site-header {
-    min-height: 84px;
+    min-height: 113px;
+    align-items: start;
   }
 
   .home-body .brand img {
-    width: 112px;
+    width: clamp(122px, 36vw, 145px);
+    height: auto;
   }
 
   .home-body .home {
@@ -423,8 +432,8 @@
   .home-body .scene-stage::before { display: none !important; }
   .home-body .scene-night {
     display: block !important; position: absolute; z-index: 0; pointer-events: none;
-    width: clamp(620px, 205vw, 1030px); height: auto; aspect-ratio: 1160 / 780;
-    left: 50%; top: 48%; transform: translate(-50%,-50%);
+    width: clamp(550px, 173vw, 885px); height: auto; aspect-ratio: 1160 / 780;
+    left: 54%; top: 53%; transform: translate(-50%,-50%);
     background: url('night-watercolor-mobile.webp') center / 100% 100% no-repeat;
   }
   .home-body #house-canvas { z-index: 2; }
