@@ -479,3 +479,29 @@
 @media (prefers-reduced-motion: reduce) {
   .home-body .project-window-glow { transition: none; }
 }
+
+
+/* v16: mobile project rows fill the available screen width.
+   The desktop left column and watercolor/3D layout are unchanged. */
+@media (max-width: 760px) {
+  .home-body .worlds {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Earlier desktop max-width:310px was shrinking the entire mobile list. */
+  .home-body .worlds-inner,
+  .home-body .project-list {
+    width: 100%;
+    max-width: none;
+  }
+
+  .home-body .project-list .project-entry {
+    width: 100%;
+  }
+}
+
+/* v21: the floating project tooltip must NEVER block the 3D window hit area.
+   Otherwise the tooltip sits over the pane, causes pointerleave, and the
+   curtains flicker or reopen while the cursor is still on the window. */
+.home-body #window-label { pointer-events: none !important; }

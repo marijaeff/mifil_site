@@ -261,16 +261,36 @@
       }
       return vis.sort((a,b)=>a.score-b.score);
     }
+    // A forgiving, stable target around the whole projected glass pane.
+    // The displayed label doesn't intercept pointer events (see CSS).  A small
+    // amount of hysteresis keeps a curtain from flickering near its frame.
     hit(x,y){if(!this.ready)return null;
-      const r=this.canvas.getBoundingClientRect();let found=null,score=Infinity;
+      const touch=matchMedia('(pointer: coarse)').matches;
+      const minPad=touch?15:10;
+      const maxPad=touch?32:24;
+      let found=null,score=Infinity;
       for(const w of this.windows.values()){
-        if(Math.abs(shortest(this.angle,w.angle))>1.16)continue;
+        // At oblique angles the pane is still visible well beyond 66 degrees.
+        if(Math.abs(shortest(this.angle,w.angle))>1.44)continue;
         const b=w.bounds,pts=[];
-        for(const xx of [b.min[0],b.max[0]])for(const yy of [b.min[1],b.max[1]])for(const zz of [b.min[2],b.max[2]])pts.push(this.screen([xx,yy,zz]));
-        const minx=Math.min(...pts.map(p=>p.x)),maxx=Math.max(...pts.map(p=>p.x)),miny=Math.min(...pts.map(p=>p.y)),maxy=Math.max(...pts.map(p=>p.y));
-        if(x<minx-6||x>maxx+6||y<miny-8||y>maxy+8)continue;
-        const dist=Math.hypot(x-(minx+maxx)/2,y-(miny+maxy)/2);
-        if(dist<score){score=dist;found=w;}
+        for(const xx of [b.min[0],b.max[0]])
+          for(const yy of [b.min[1],b.max[1]])
+            for(const zz of [b.min[2],b.max[2]])pts.push(this.screen([xx,yy,zz]));
+        if(pts.some(p=>!Number.isFinite(p.x)||!Number.isFinite(p.y)))continue;
+        const minx=Math.min(...pts.map(p=>p.x)),maxx=Math.max(...pts.map(p=>p.x));
+        const miny=Math.min(...pts.map(p=>p.y)),maxy=Math.max(...pts.map(p=>p.y));
+        // Include the timber frame, with extra tolerance only for the pane
+        // already being hovered. This avoids opening the curtains mid-hover.
+        const sticky=this.hoverId===w.id?16:0;
+        const padX=clamp((maxx-minx)*.10,minPad,maxPad)+sticky;
+        const padY=clamp((maxy-miny)*.10,minPad,maxPad)+sticky;
+        if(x<minx-padX||x>maxx+padX||y<miny-padY||y>maxy+padY)continue;
+        const distance=Math.hypot(
+          (x-(minx+maxx)/2)/Math.max(1,maxx-minx+padX*2),
+          (y-(miny+maxy)/2)/Math.max(1,maxy-miny+padY*2));
+        // Prefer the current pane if two expanded hit areas overlap.
+        const priority=distance-(this.hoverId===w.id ? .12 : 0);
+        if(priority<score){score=priority;found=w;}
       }
       return found;
     }
