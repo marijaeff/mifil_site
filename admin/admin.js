@@ -310,7 +310,10 @@ function renderTranslations(parent) {
   const longKeys = keys.filter((key) => key.endsWith('Text') || projectIds.includes(key));
   const simple = sectionCard('Интерфейс', 'Названия навигации, кнопок, заголовков и служебных сообщений.');
   const grid = element('div', 'translation-group');
-  for (const key of shortKeys) grid.append(translationField(key, translation[key], (value) => { translation[key] = value; }));
+  for (const key of shortKeys) {
+    const visibleLabel = key === 'intro' ? 'intro (сейчас не отображается на главной)' : key;
+    grid.append(translationField(visibleLabel, translation[key], (value) => { translation[key] = value; }));
+  }
   simple.append(grid);
   parent.append(simple);
   const pages = sectionCard('Основные тексты и описания', 'Эти тексты используются на страницах «О MiFiL» и в карточках проектов.');
@@ -331,12 +334,18 @@ function renderTranslations(parent) {
 }
 function renderPages(parent) {
   ensureLanguageData(state.lang);
+  parent.append(element('p', 'muted', `Редактируется язык: ${state.bundle.languages[state.lang] || state.lang}. На сайте выбери тот же язык. Для проверки открой страницу по ссылке ниже.`));
   const group = element('div', 'page-list');
   for (const id of pageIds) {
     const card = sectionCard(pageName[id]);
     const [titleKey, textKey] = sourceKeys[id];
     const map = state.bundle.translations[state.lang];
-    const info = element('p', 'muted', `Адрес: page.html?view=${id}`);
+    const info = element('p', 'muted');
+    const previewLink = element('a', '', 'Проверить опубликованную страницу ↗');
+    previewLink.href = `../page.html?view=${id}&lang=${state.lang}&cmsDebug=1`;
+    previewLink.target = '_blank';
+    previewLink.rel = 'noopener';
+    info.append('После публикации: ', previewLink);
     const grid = element('div', 'form-grid');
     add(grid,
       formField('Заголовок', map[titleKey], (value) => { map[titleKey] = value; }, { full: true }),
