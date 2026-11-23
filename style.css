@@ -60,6 +60,9 @@ button, select { font: inherit; }
   width: fit-content;
 }
 
+/* The original MiFiL artwork, kept as a transparent image on every page. */
+.brand img { width: 140px; height: auto; object-fit: contain; }
+
 .header-link,
 .footer-links a,
 .language,

@@ -15,3 +15,80 @@
   .back-desktop { display: none; }
   .back-mobile { display: inline; }
 }
+
+
+/* v18: keep original Playable Letter artwork and editorial look. Continuous watercolor-to-forest background. */
+:root { --deep:#102820; }
+body.letter-page {
+  background-color:#102820;
+  background-image:linear-gradient(to bottom,
+    #f7dcba 0px, #f7dcba 104px, #f4ddbe 140px,
+    #ecd8ba 171px, #ddceb3 203px, #c6c3ad 238px,
+    #aeb7a1 272px, #91a88f 305px, #6e947c 339px,
+    #507963 373px, #345d4b 410px, #214637 445px,
+    #16372b 478px, #102820 550px);
+  background-repeat:no-repeat;
+  background-size:100% 550px;
+  background-position:center -95px; /* move the existing soft gradient upward unchanged */
+}
+.letter-page .landing-header { position:relative;z-index:5;height:152px;background:transparent; }
+.letter-page .landing-header-inner { width:min(100%,1586px);height:118px;display:flex;align-items:center;justify-content:space-between;gap:20px;margin:auto;padding-inline:clamp(24px,6.1vw,94px); }
+.letter-page .landing-brand { display:inline-flex;flex-shrink:0;align-items:center; }
+.letter-page .landing-brand img { width:140px;height:auto;object-fit:contain; }
+.letter-page .landing-header-nav { display:flex;align-items:center;gap:clamp(12px,2.6vw,32px); }
+.letter-page .landing-header-nav a,.letter-page .landing-header-nav select { font:400 13px/1.4 var(--sans);color:#193f4d; }
+.letter-page .landing-header-nav a:hover { color:#8f633f; }
+.letter-page .landing-language-label {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
+.letter-page .landing-language { background:#fff8ea58;border:1px solid #725e483d;border-radius:24px;min-width:95px;max-width:138px;padding:7px 10px;cursor:pointer; }
+.letter-page .hero { background:transparent; }
+.letter-page .hero-grid { min-height:660px;padding:104px 0 50px; }
+.letter-page .hero-copy { padding-top:14px; }
+.letter-page .hero h1 {font-size:clamp(52px,5.9vw,93px);max-width:12ch;line-height:1.04;letter-spacing:-.046em;text-wrap:balance;overflow-wrap:anywhere;}
+.letter-page .hero h1 em { color:var(--gold);font-style:italic;white-space:normal; }
+.letter-page .hero .lede {margin-top:26px;max-width:460px;}
+.letter-page .hero-visual { min-height:545px; }
+.letter-page .hero-note { color:#d1d9c7; }
+.letter-page .hero-note span[data-t] { color:inherit; }
+.letter-page .styles-section { background:var(--cream); }
+.letter-page .occasion { background:#ead9c5; }
+.letter-page .how { background:#203a4c; }
+.letter-page .keepsakes { background:#e6e9dc; }
+.letter-page .hero-end {border-top-color:#eadcc325;}
+.letter-page .final h2 {max-width:800px;margin:auto;}
+.letter-page h2 {text-wrap:balance;}
+.letter-page .footer { background:#102820; }
+.letter-page .footer a:hover{color:var(--gold);}
+.letter-page .faq { background:var(--cream); }
+.letter-page :is(.level,.style-pick,.btn):focus-visible {outline:2px solid #ab8357;outline-offset:3px;}
+html[dir="rtl"] .letter-page .level {text-align:right;}
+@media(max-width:760px){
+ body.letter-page {background-image:linear-gradient(to bottom,
+   #f7dcba 0px,#f7dcba 75px,#f3dbbf 96px,
+   #dfd1b7 114px,#b9bda6 132px,#8fa690 150px,
+   #628a72 171px,#416c55 191px,#2c5442 213px,
+   #1b4032 240px,#102820 285px);
+   background-size:100% 285px;
+   background-position:center top; }
+ .letter-page .landing-header { height:126px; }
+ .letter-page .landing-header-inner {height:95px;padding-inline:20px;gap:9px;}
+ .letter-page .landing-brand img{width:clamp(115px,34vw,140px);}
+ .letter-page .landing-header-nav {gap:10px;}
+ .letter-page .landing-header-nav a {font-size:12px;}
+ .letter-page .landing-language{min-width:70px;max-width:94px;padding:6px;font-size:11px !important;}
+ .letter-page .hero-grid{padding:30px 0 20px;min-height:0;gap:6px;}
+ .letter-page .hero h1{font-size:clamp(44px,11.3vw,67px);max-width:15ch;}
+ .letter-page .hero .lede{margin:18px 0 21px;}
+ .letter-page .hero-visual{min-height:clamp(330px,94vw,440px);}
+ .letter-page .hero-end {margin-top:9px;}
+ .letter-page .section-heading{margin-bottom:28px;}
+ .letter-page .occasion h2{font-size:clamp(35px,9vw,49px);}
+ .letter-page .notes span{font-size:16px;min-height:60px;}
+ .letter-page .final h2 {font-size:clamp(36px,9vw,57px);}
+ .letter-page .footer .wrap{justify-content:space-between;}
+}
+@media(max-width:390px){
+ .letter-page .landing-brand img{width:110px;}
+ .letter-page .landing-language{min-width:65px;max-width:82px;}
+ .letter-page .hero-grid{padding-top:26px;}
+}
+@media(prefers-reduced-motion:reduce){.letter-page .phone,.letter-page .spark{animation:none!important;}}

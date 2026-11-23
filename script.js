@@ -84,31 +84,14 @@
     },
   };
 
-  const session = {
-    get(key) {
-      try {
-        return sessionStorage.getItem(key);
-      } catch {
-        return null;
-      }
-    },
-    set(key, value) {
-      try {
-        sessionStorage.setItem(key, value);
-      } catch {
-        // ignore
-      }
-    },
-  };
-
   let language = 'en';
   let house = null;
   let leaving = false;
-  let navTimer = null;
   let previewTimer = null;
+  let navTimer = null;
+  let mobileScrollTimer = null;
 
   const langSelect = $('language');
-  const transition = $('transition');
   const stage = $('stage');
   // A restrained light halo follows the actual 3D position of the active window.
   // Kept separate from WebGL so it remains soft without expensive postprocessing.
@@ -250,24 +233,6 @@
     langSelect.addEventListener('change', () => setLanguage(langSelect.value));
   }
 
-  function setTransitionCenter() {
-    if (!transition) {
-      return;
-    }
-
-    let x = window.innerWidth / 2;
-    let y = window.innerHeight / 2;
-
-    if (stage) {
-      const rect = stage.getBoundingClientRect();
-      x = rect.left + rect.width / 2;
-      y = rect.top + rect.height / 2;
-    }
-
-    transition.style.setProperty('--transition-x', `${(x / window.innerWidth) * 100}%`);
-    transition.style.setProperty('--transition-y', `${(y / window.innerHeight) * 100}%`);
-  }
-
   if ($('year')) {
     $('year').textContent = new Date().getFullYear();
   }
@@ -395,50 +360,64 @@
     }
   }
 
-  function go(id) {
+  // v18: focus on the real 3D window and zoom into it. No radial sand overlay.
+  // A project chosen from the list on a phone scrolls back to the house first.
+  function revealHouse() {
+    if (!stage || !mobileMedia.matches) return false;
+    const r = stage.getBoundingClientRect();
+    const top = Math.max(0, window.scrollY + r.top - Math.max(12, (window.innerHeight - r.height) / 2));
+    if (Math.abs(top - window.scrollY) < 24) return false;
+    window.scrollTo({ top, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+    return true;
+  }
+
+  function go(id, fromList = false) {
     const link = links.find((item) => item.dataset.project === id);
-    if (!link || leaving) {
-      return;
-    }
+    if (!link || leaving) return;
     if (!isReleased(id)) {
       preview(id, true);
+      if (fromList) revealHouse();
       return;
     }
-
     if (!house) {
       location.assign(projectHref(id, link));
       return;
     }
-
     leaving = true;
     windowGlow.classList.remove('is-visible');
     setActive(id);
+    clearTimeout(previewTimer);
     clearLabel();
-    stage?.classList.add('is-entering');
     if (windowNames) windowNames.hidden = true;
-    setTransitionCenter();
-
     $('scene-status').textContent = `${text('opening')} ${projects[id].name}`;
     document.querySelectorAll('.rotate').forEach((button) => {
       button.disabled = true;
     });
 
     const destination = projectHref(id, link);
+    let navigated = false;
 
     const navigate = () => {
+      if (navigated) return;
+      navigated = true;
       clearTimeout(navTimer);
-      session.set('mifil-house-angle', String(house?.angle ?? 0));
-      location.assign(destination);
+      clearTimeout(mobileScrollTimer);
+      window.location.assign(destination);
     };
-
-    try {
-      if (!house.enter(id, navigate)) {
-        navigate();
-        return;
-      }
-      navTimer = setTimeout(navigate, 2200);
-    } catch {
-      navigate();
+    const enterWindow = () => {
+      if (navigated) return;
+      stage?.classList.add('is-entering');
+      try {
+        if (!house?.enter(id, navigate)) { navigate(); return; }
+        navTimer = setTimeout(navigate, 2500);
+      } catch (error) { console.warn('Window zoom fallback:', error); navigate(); }
+    };
+    // On mobile, the project list is lower on the page. Let the house come into view
+    // before the cinematic WebGL zoom begins. Canvas taps zoom immediately.
+    if (fromList && revealHouse()) {
+      mobileScrollTimer = setTimeout(enterWindow, matchMedia('(prefers-reduced-motion: reduce)').matches ? 50 : 720);
+    } else {
+      enterWindow();
     }
   }
 
@@ -447,10 +426,9 @@
       throw new Error('House unavailable');
     }
 
-    const previous = session.get('mifil-house-angle');
-
     house = new window.MiFiLHouse(canvas, {
-      angle: previous === null ? undefined : Number(previous),
+      // Always show the front gable when returning from a project or reloading.
+      angle: 0,
       onReady() {
         canvas.classList.add('ready');
         $('fallback').hidden = true;
@@ -476,12 +454,6 @@
           clearLabel();
         }
       },
-      onEnter() {
-        if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
-          setTransitionCenter();
-          transition?.classList.add('enter');
-        }
-      },
       onLost: showFallback,
     });
 
@@ -494,7 +466,7 @@
     const id = link.dataset.project;
 
     link.addEventListener('click', (event) => {
-      if (!isReleased(id)) { event.preventDefault(); preview(id, true); return; }
+      if (!isReleased(id)) { event.preventDefault(); preview(id, true); revealHouse(); return; }
       if (!house || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
         // A previously unreleased <button> can be enabled via CMS without
         // requiring a full HTML redesign. It has no native navigation.
@@ -505,7 +477,7 @@
       }
 
       event.preventDefault();
-      go(id);
+      go(id, true);
     });
 
     const start = () => {
@@ -546,7 +518,6 @@
   $('rotate-left').addEventListener('click', () => house?.rotate(-Math.PI / 2));
   $('rotate-right').addEventListener('click', () => house?.rotate(Math.PI / 2));
 
-  window.addEventListener('resize', setTransitionCenter);
   window.addEventListener('pageshow', (event) => {
     if (event.persisted) {
       location.reload();
