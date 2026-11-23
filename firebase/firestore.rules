@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isCmsAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/cmsAdmins/$(request.auth.uid));
+    }
+
+    // Public website reads ONLY the published snapshot.
+    // Drafts are never accessible anonymously.
+    match /siteContent/{snapshotId} {
+      allow get: if snapshotId == 'public' || isCmsAdmin();
+      allow list: if false;
+      allow create, update: if (snapshotId == 'public' || snapshotId == 'draft')
+        && isCmsAdmin()
+        && request.resource.data.schemaVersion == 1
+        && request.resource.data.keys().hasOnly([
+          'schemaVersion', 'languages', 'translations', 'teasers',
+          'comingSoon', 'projects', 'pages', 'updatedAt'
+        ]);
+      allow delete: if false;
+    }
+
+    // Create the admin document manually in Firebase Console.
+    // No one, including a signed-in user, can appoint themselves an admin.
+    match /cmsAdmins/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list, create, update, delete: if false;
+    }
+
+    // Everything else in this database is PRIVATE by default.
+    // If the database is SHARED with other applications, merge the rules
+    // carefully instead of replacing their existing access policies.
+    match /{document=**} { allow read, write: if false; }
+  }
+}

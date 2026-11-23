@@ -8,6 +8,63 @@
   const isReleased = (id) => availability[id] === true;
   const soonLabel = () => window.MiFiLComingSoon?.[language] || window.MiFiLComingSoon?.en || 'Coming soon';
 
+  function projectHref(id, element) {
+    const candidate = projects[id]?.href || element?.getAttribute('href') || (id === 'playable-letter' ? 'playable-letter/' : `page.html?view=${id}`);
+    try {
+      const url = new URL(candidate, document.baseURI);
+      return ['https:', 'http:'].includes(url.protocol) ? url.href : new URL('index.html', document.baseURI).href;
+    } catch {
+      return new URL('index.html', document.baseURI).href;
+    }
+  }
+
+  function refreshProjectUI() {
+    document.querySelectorAll('[data-project]').forEach((entry) => {
+      const id = entry.dataset.project;
+      const project = projects[id];
+      if (!project) return;
+      const name = entry.querySelector('.project-name');
+      if (name) name.textContent = project.name;
+      const icon = entry.querySelector('.project-icon img');
+      if (icon && project.icon) icon.src = project.icon;
+      const released = isReleased(id);
+      entry.classList.toggle('is-unreleased', !released);
+      entry.setAttribute('aria-disabled', released ? 'false' : 'true');
+      let status = entry.querySelector('.status-soon');
+      if (!status && !released) {
+        status = document.createElement('span');
+        status.className = 'status-soon';
+        status.dataset.comingSoon = '';
+        status.textContent = soonLabel();
+        entry.append(status);
+      }
+      if (status) status.hidden = released;
+      const arrow = entry.querySelector('.arrow');
+      if (arrow) arrow.hidden = !released;
+      // Links keep their existing tag name; unreleased <button>s become
+      // navigable through the same click handler once published.
+      if (entry.tagName === 'A' && released) entry.href = projectHref(id, entry);
+    });
+    document.querySelectorAll('[data-world]').forEach((entry) => {
+      const id = entry.dataset.world;
+      if (!projects[id]) return;
+      entry.textContent = projects[id].name;
+      entry.href = projectHref(id, entry);
+    });
+    document.querySelectorAll('[data-face]').forEach((entry) => {
+      const name = projects[entry.dataset.face]?.name;
+      if (name) {
+        entry.title = name;
+        entry.setAttribute('aria-label', name);
+      }
+    });
+    document.querySelectorAll('[data-window-project]').forEach((entry) => {
+      entry.classList.toggle('is-unreleased', !isReleased(entry.dataset.windowProject));
+      const name = projects[entry.dataset.windowProject]?.name || '';
+      entry.setAttribute('aria-label', isReleased(entry.dataset.windowProject) ? name : `${name}: ${soonLabel()}`);
+    });
+  }
+
   const $ = (id) => document.getElementById(id);
 
   const storage = {
@@ -131,6 +188,7 @@
     const id = Object.hasOwn(projects, candidate) || allowedStatic.includes(candidate)
       ? candidate
       : 'about';
+    const staticPage = window.MiFiLPages?.[id];
 
     if (projects[id] && !isReleased(id)) {
       location.replace(new URL('index.html#worlds', document.baseURI).href);
@@ -139,11 +197,11 @@
     document.body.dataset.view = id;
 
     const project = projects[id];
-    const title = project?.name || text(id);
+    const title = project?.name || text(staticPage?.titleKey || id);
 
     $('detail-title').textContent = title;
     $('detail-kicker').textContent = project ? text('worlds') : 'MiFiL';
-    $('detail-description').textContent = text(project ? id : `${id}Text`);
+    $('detail-description').textContent = text(project ? id : (staticPage?.bodyKey || `${id}Text`));
     document.title = `${title} · MiFiL`;
 
     document.querySelectorAll('[data-world]').forEach((link) => {
@@ -216,6 +274,13 @@
 
   fillLanguages();
   setLanguage(initialLanguage());
+  refreshProjectUI();
+  // Firestore arrives asynchronously; all existing controls and the 3D house
+  // retain their event handlers and only visible content is refreshed.
+  window.addEventListener('mifil:content-ready', () => {
+    refreshProjectUI();
+    setLanguage(language);
+  });
 
   const links = [...document.querySelectorAll('[data-project]')];
   const canvas = $('house-canvas');
@@ -311,7 +376,7 @@
     if (leaving) {
       const active = links.find((link) => link.classList.contains('is-active'));
       if (active) {
-        if (isReleased(active.dataset.project)) location.assign(active.href);
+        if (isReleased(active.dataset.project)) location.assign(projectHref(active.dataset.project, active));
       }
     }
   }
@@ -341,7 +406,7 @@
     }
 
     if (!house) {
-      location.assign(link.href);
+      location.assign(projectHref(id, link));
       return;
     }
 
@@ -358,7 +423,7 @@
       button.disabled = true;
     });
 
-    const destination = link.href;
+    const destination = projectHref(id, link);
 
     const navigate = () => {
       clearTimeout(navTimer);
@@ -431,6 +496,11 @@
     link.addEventListener('click', (event) => {
       if (!isReleased(id)) { event.preventDefault(); preview(id, true); return; }
       if (!house || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) {
+        // A previously unreleased <button> can be enabled via CMS without
+        // requiring a full HTML redesign. It has no native navigation.
+        if (link.tagName === 'BUTTON' && !house && !event.defaultPrevented) {
+          location.assign(projectHref(id, link));
+        }
         return;
       }
 

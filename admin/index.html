@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#101b2d">
+  <title>MiFiL — Управление сайтом</title>
+  <link rel="icon" href="../assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="admin.css">
+  <!-- The original local data is used for one-time non-destructive migration. -->
+  <script defer src="../texts.js"></script>
+  <script defer src="../assets/project-teasers.js"></script>
+  <script defer src="../assets/project-status.js"></script>
+  <script type="module" src="admin.js"></script>
+</head>
+<body>
+  <div class="login-shell" id="setup-screen" hidden>
+    <img class="login-logo" src="../assets/logo-stacked.svg" alt="MiFiL">
+    <section class="login-card">
+      <span class="eyebrow">Настройка</span>
+      <h1>Подключи Firebase</h1>
+      <p>Сайт уже подготовлен к работе с панелью управления. Для входа нужно заполнить конфигурацию в <code>firebase/config.js</code> и настроить права администратора.</p>
+      <p>Пошаговая инструкция находится в файле <strong>README_ADMIN_RU.md</strong> внутри архива.</p>
+      <a class="quiet-link" href="../index.html">← Вернуться на сайт</a>
+    </section>
+  </div>
+
+  <div class="login-shell" id="login-screen" hidden>
+    <img class="login-logo" src="../assets/logo-stacked.svg" alt="MiFiL">
+    <form class="login-card" id="login-form">
+      <span class="eyebrow">MiFiL CMS</span>
+      <h1>С возвращением</h1>
+      <p>Войди, чтобы управлять содержимым сайта.</p>
+      <label for="login-email">Электронная почта</label>
+      <input id="login-email" type="email" autocomplete="username" required placeholder="email@example.com">
+      <label for="login-password">Пароль</label>
+      <input id="login-password" type="password" autocomplete="current-password" required minlength="6" placeholder="Пароль">
+      <button class="btn primary wide" type="submit" id="login-submit">Войти</button>
+      <p class="message" id="login-error" role="alert" hidden></p>
+      <a class="quiet-link" href="../index.html">← Вернуться на сайт</a>
+    </form>
+  </div>
+
+  <div class="app" id="admin-app" hidden>
+    <aside class="sidebar" aria-label="Навигация администратора">
+      <div class="side-brand">
+        <img src="../assets/logo-horizontal.svg" alt="MiFiL" width="150">
+        <span>Управление</span>
+      </div>
+      <div class="side-caption">Содержимое сайта</div>
+      <nav class="side-nav" id="sidebar-nav">
+        <button class="nav-item is-current" data-tab="overview" type="button"><span class="nav-icon">⌂</span> Обзор</button>
+        <button class="nav-item" data-tab="projects" type="button"><span class="nav-icon">◇</span> Проекты</button>
+        <button class="nav-item" data-tab="translations" type="button"><span class="nav-icon">文</span> Переводы</button>
+        <button class="nav-item" data-tab="pages" type="button"><span class="nav-icon">▤</span> Страницы</button>
+        <button class="nav-item" data-tab="publish" type="button"><span class="nav-icon">↥</span> Публикация</button>
+      </nav>
+      <div class="side-bottom">
+        <a href="../index.html" target="_blank" rel="noopener">Посмотреть сайт ↗</a>
+        <button type="button" id="logout-btn">Выйти</button>
+      </div>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <div class="breadcrumbs">MiFiL <span>/</span> <strong id="breadcrumb">Обзор</strong></div>
+        <div class="top-actions">
+          <span class="state-indicator" id="state-indicator">Не сохранено</span>
+          <button type="button" class="btn ghost" id="save-draft-btn">Сохранить черновик</button>
+          <button type="button" class="btn primary" id="publish-btn">Опубликовать</button>
+        </div>
+      </header>
+      <main class="content">
+        <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+        <div id="empty-state" class="empty-state" hidden>
+          <span class="eyebrow">Первый запуск</span>
+          <h1>Перенесём твой сайт в CMS</h1>
+          <p>Мы загрузим четыре проекта, три страницы и тексты на 16 языках из исходных файлов. Ничего не изменится в дизайне дома, и старые файлы останутся резервной копией.</p>
+          <button class="btn primary" id="import-btn" type="button">Импортировать содержимое сайта</button>
+          <p class="small-note">Импорт доступен только в пустой базе. Создаст опубликованную версию и черновик.</p>
+        </div>
+        <div id="editor-area" hidden>
+          <div class="page-heading">
+            <div><span class="eyebrow" id="page-eyebrow">MiFiL CMS</span><h1 id="page-heading-title">Обзор</h1><p id="page-description"></p></div>
+            <div class="locale-control" id="locale-control" hidden>
+              <label for="locale-select">Язык</label>
+              <select id="locale-select"></select>
+            </div>
+          </div>
+          <section id="tab-content" aria-live="polite"></section>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
